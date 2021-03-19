@@ -97,7 +97,7 @@ int Expression::ConstantNode::eval(const Environment &env) const {
 Expression::ConstantNode::ConstantNode(const QString &token)
     : value(token.toInt()) {}
 int Expression::CompoundNode::eval(const Environment &env) const {
-  int lv = left->eval(env), rv = left->eval(env);
+  int lv = left->eval(env), rv = right->eval(env);
   if (op == '+') return lv + rv;
   if (op == '-') return lv - rv;
   if (op == '*') return lv * rv;
