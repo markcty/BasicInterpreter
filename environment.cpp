@@ -6,3 +6,5 @@ int Environment::getValue(const QString &variable) const {
 void Environment::setValue(const QString &variable, int value) {
   env[variable] = value;
 }
+
+void Environment::clear() { env.clear(); }

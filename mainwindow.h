@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QFileDialog>
+#include <QKeyEvent>
 #include <QMainWindow>
 #include <QMessageBox>
 
@@ -22,6 +23,8 @@ class MainWindow : public QMainWindow {
 
  public:
   MainWindow(QWidget *parent = nullptr);
+  // process enter key in output
+  bool eventFilter(QObject *watched, QEvent *event);
   ~MainWindow();
 
  private:
@@ -33,5 +36,7 @@ class MainWindow : public QMainWindow {
   void clear();
   void execute();
   void parseCMD();
+  void getValue();
+  void print(QString output);
 };
 #endif  // MAINWINDOW_H

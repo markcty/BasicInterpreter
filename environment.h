@@ -19,6 +19,7 @@ class Environment {
   Environment() = default;  // TODO: take a src as input
   int getValue(const QString &variable) const;
   void setValue(const QString &variable, int value);
+  void clear();
 };
 
 #endif  // ENVIRONMENT_H

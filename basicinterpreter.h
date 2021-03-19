@@ -1,7 +1,9 @@
 #ifndef BASICINTERPRETER_H
 #define BASICINTERPRETER_H
 
+#include <QDebug>
 #include <QMap>
+#include <QObject>
 #include <QString>
 #include <QStringList>
 
@@ -9,9 +11,11 @@
 #include "expression.h"
 #include "statement.h"
 
-class BasicInterpreter {
+class BasicInterpreter : public QObject {
+  Q_OBJECT
  private:
   QMap<int, Statement *> src;
+  Environment *env;
 
   void insertLine(int index, QString line);
   void removeLine(int index);
@@ -20,7 +24,16 @@ class BasicInterpreter {
  public:
   bool parseCmd(QString cmd);
   QString toString() const;
-  BasicInterpreter() = default;
+  BasicInterpreter();
+
+ signals:
+  void nextStep();
+  void needInput();
+  void print(QString output);
+
+ public slots:
+  void step();
+  void setInput(int v);
 };
 
 #endif  // BASICINTERPRETER_H

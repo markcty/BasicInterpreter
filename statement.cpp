@@ -17,17 +17,23 @@ QString LetStatement::getVariable() { return variable; }
 
 Expression *LetStatement::getFirstExp() { return exp; }
 
-// PrintStatement::PrintStatement(const QString &l) {
-//  line = l;
-//  exp = new Expression(l);
-//  type = PRINT;
-//}
-//
-// InputStatement::InputStatement(const QString &l) {
-//  line = l;
-//  variable = l;
-//  type = INPUT;
-//}
+PrintStatement::PrintStatement(QString l) {
+  line = l;
+  l = l.remove("PRINT").simplified();
+  exp = new Expression(l);
+  type = PRINT;
+}
+
+Expression *PrintStatement::getFirstExp() { return exp; }
+
+InputStatement::InputStatement(QString l) {
+  line = l;
+  l = l.remove("INPUT").simplified();
+  variable = l;
+  type = INPUT;
+}
+
+QString InputStatement::getVariable() { return variable; }
 
 GotoStatement::GotoStatement(QString l) {
   line = l;
@@ -58,6 +64,8 @@ IfStatement::IfStatement(QString l) {
 Expression *IfStatement::getFirstExp() { return exp1; }
 
 Expression *IfStatement::getSecondExp() { return exp2; }
+
+QChar IfStatement::getOperator() { return op; }
 
 int IfStatement::getLineNumber() { return lineNumber; }
 EndStatement::EndStatement(const QString &l) {

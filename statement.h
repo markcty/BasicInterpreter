@@ -43,22 +43,24 @@ class LetStatement : public Statement {
   Expression *getFirstExp() override;
 };
 
-// class PrintStatement : public Statement {
-// private:
-//  Expression *exp;
-// public:
-//  explicit PrintStatement(const QString &l);
-//  void execute(Environment &env) override;
-//};
+class PrintStatement : public Statement {
+ private:
+  Expression *exp;
 
-// class InputStatement : public Statement {
-// private:
-//  QString variable;
-//  int value = 0;
-// public:
-//  explicit InputStatement(const QString &l);
-//  void execute(Environment &env) override;
-//};
+ public:
+  explicit PrintStatement(QString l);
+  Expression *getFirstExp() override;
+};
+
+class InputStatement : public Statement {
+ private:
+  QString variable;
+  int value = 0;
+
+ public:
+  explicit InputStatement(QString l);
+  QString getVariable() override;
+};
 
 class GotoStatement : public Statement {
  private:
@@ -79,6 +81,7 @@ class IfStatement : public Statement {
   explicit IfStatement(QString l);
   Expression *getFirstExp() override;
   Expression *getSecondExp() override;
+  QChar getOperator() override;
   int getLineNumber() override;
 };
 
