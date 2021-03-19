@@ -1,0 +1,7 @@
+10 REM Program to simulate a countdown
+20 LET T = 10
+30 IF T < 0 THEN 70
+40 REM PRINT T
+50 LET T = T - 1
+60 GOTO 30
+70 END

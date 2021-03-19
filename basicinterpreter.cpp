@@ -63,30 +63,29 @@ void BasicInterpreter::run() {
   while (env.currentLine != src.constEnd()) {
     Statement *statement = env.currentLine.value();
     switch (statement->type) {
-    REM:
-      break;
-    LET:
-
-      env.setValue(statement->getVariable(),
-                   statement->getFirstExp()->eval(env));
-      break;
-
-    GOTO : {
-      env.currentLine = src.constFind(statement->getLineNumber());
-      break;
-    }
-    IF : {
-      QChar op = statement->getOperator();
-      int lv = statement->getFirstExp()->eval(env),
-          rv = statement->getSecondExp()->eval(env);
-      if ((op == '>' && lv > rv) || (op == '=' && lv == rv) ||
-          (op == '<' && lv < rv))
+      case LET: {
+        env.setValue(statement->getVariable(),
+                     statement->getFirstExp()->eval(env));
+        env.currentLine++;
+        break;
+      }
+      case GOTO: {
         env.currentLine = src.constFind(statement->getLineNumber());
-      break;
-    }
-    END:
-      break;
+        break;
+      }
+      case IF: {
+        QChar op = statement->getOperator();
+        int lv = statement->getFirstExp()->eval(env),
+            rv = statement->getSecondExp()->eval(env);
+        if ((op == '>' && lv > rv) || (op == '=' && lv == rv) ||
+            (op == '<' && lv < rv))
+          env.currentLine = src.constFind(statement->getLineNumber());
+        else
+          env.currentLine++;
+        break;
+      }
       default:
+        env.currentLine++;
         break;
     }
   }

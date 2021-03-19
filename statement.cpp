@@ -49,7 +49,7 @@ IfStatement::IfStatement(QString l) {
     op = '>';
   auto split_op = l.split(op);
   exp1 = new Expression(split_op[0].simplified());
-  auto split_then = l.split("THEN");
+  auto split_then = split_op[1].split("THEN");
   exp2 = new Expression(split_then[0].simplified());
   lineNumber = split_then[1].toInt();
   type = IF;

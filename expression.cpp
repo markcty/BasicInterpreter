@@ -3,12 +3,18 @@ Expression::Expression(QString exp) {
   exp.remove(" ");
   // return the index of the first occurrence of an operator
   auto findOp = [](int i, const QString &exp) {
+    auto compare = [](int now, int next) {
+      if (now == -1) return next;
+      if (now < next) return now;
+      if (next == -1) return now;
+      return next;
+    };
     int ans = exp.indexOf('+', i);
-    ans = qMin(ans, exp.indexOf('-', i));
-    ans = qMin(ans, exp.indexOf('*', i));
-    ans = qMin(ans, exp.indexOf('/', i));
-    ans = qMin(ans, exp.indexOf('(', i));
-    ans = qMin(ans, exp.indexOf(')', i));
+    ans = compare(ans, exp.indexOf('-', i));
+    ans = compare(ans, exp.indexOf('*', i));
+    ans = compare(ans, exp.indexOf('/', i));
+    ans = compare(ans, exp.indexOf('(', i));
+    ans = compare(ans, exp.indexOf(')', i));
     return ans;
   };
   // tokenize
@@ -23,6 +29,7 @@ Expression::Expression(QString exp) {
   if (i < length) tokens.push_back(exp.mid(i));
   // return the precedence of an operator, -1 if not an operator
   auto getPre = [](QChar c) {
+    if (c == '(' || c == ')') return 2;
     if (c == '*' || c == '/') return 1;
     if (c == '+' || c == '-') return 0;
     return -1;
@@ -30,12 +37,12 @@ Expression::Expression(QString exp) {
   // parse
   QStack<QChar> operators;
   QStack<Node *> operands;
+  // wrap the expression in a parenthesis can simplify parsing
   tokens.push_front("(");
-  tokens.push_back(
-      ")");  // wrap the expression in a parenthesis can simplify parsing
+  tokens.push_back(")");
   for (const QString &token : tokens) {
     if (getPre(token[0]) >= 0) {
-      // current token is an operator
+      // current token is an operator or a parenthesis
       QChar op = token[0];
       QChar top;
       Node *node;
@@ -46,8 +53,10 @@ Expression::Expression(QString exp) {
           node->left = operands.pop();
           operands.push(node);
         }
+      else if (op == '(')
+        operators.push('(');
       else {
-        while (getPre(operators.top()) < getPre(op)) {
+        while (!operators.empty() && getPre(operators.top()) < getPre(op)) {
           top = operators.pop();
           node = new CompoundNode(top);
           node->right = operands.pop();
