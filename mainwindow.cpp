@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect(interpreter, &BasicInterpreter::needInput, this,
           &MainWindow::getValue);
   connect(interpreter, &BasicInterpreter::print, this, &MainWindow::print);
+  connect(interpreter, &BasicInterpreter::needLoad, this, &MainWindow::load);
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {

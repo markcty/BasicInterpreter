@@ -33,6 +33,7 @@ class BasicInterpreter : public QObject {
  signals:
   void nextStep();
   void needInput();
+  void needLoad();
   void print(QString output);
 
  public slots:

@@ -30,7 +30,7 @@ bool BasicInterpreter::parseCmd(QString cmd) {
   else if (parts[0] == "RUN") {
     run();
   } else if (parts[0] == "LOAD") {
-    // TODO: mainWindow->load();
+    emit needLoad();
   } else if (parts[0] == "LIST") {
     // no need to implement
   } else if (parts[0] == "CLEAR") {
