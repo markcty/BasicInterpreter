@@ -10,7 +10,15 @@ Expression::Expression(QString exp) {
   };
 
   // tokenize
-  if (exp[0] == '-') exp.push_front('0');
+  // wrap the expression in a parenthesis can simplify parsing
+  exp.push_front("(");
+  exp.push_back(")");
+  // add a 0 before - to dealth with negative number
+  int j = 0;
+  while ((j = exp.indexOf('-', j)) != -1) {
+    if (exp[j - 1] == '(') exp.insert(j - 1, QString(" "));
+    ++j;
+  }
   int i = 0, nexti = 0, length = exp.length();
   QStringList tokens;
   while (i < length) {
@@ -34,9 +42,7 @@ Expression::Expression(QString exp) {
   // parse
   QStack<QChar> operators;
   QStack<Node *> operands;
-  // wrap the expression in a parenthesis can simplify parsing
-  tokens.push_front("(");
-  tokens.push_back(")");
+
   for (const QString &token : tokens) {
     if (getPre(token[0]) >= 0) {
       // current token is an operator or a parenthesis

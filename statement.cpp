@@ -86,3 +86,17 @@ QChar Statement::getOperator() { return ' '; }
 Expression *Statement::getFirstExp() { return nullptr; }
 
 Expression *Statement::getSecondExp() { return nullptr; }
+
+QString RemStatement::toTree() { return ""; }
+
+QString LetStatement::toTree() { return ""; }
+
+QString InputStatement::toTree() { return ""; }
+
+QString GotoStatement::toTree() { return ""; }
+
+QString IfStatement::toTree() { return ""; }
+
+QString EndStatement::toTree() { return ""; }
+
+QString PrintStatement::toTree() { return ""; }
