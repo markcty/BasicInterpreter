@@ -17,7 +17,8 @@ bool BasicInterpreter::parseCmd(QString cmd) {
   // immdiate statement
   else if (parts[0] == "PRINT") {
     immediateStatement = new PrintStatement(cmd);
-    emit print(QString::number(immediateStatement->getFirstExp()->eval(*env)));
+    emit needPrint(
+        QString::number(immediateStatement->getFirstExp()->eval(*env)));
   } else if (parts[0] == "LET") {
     immediateStatement = new LetStatement(cmd);
     env->setValue(immediateStatement->getVariable(),
@@ -111,7 +112,7 @@ void BasicInterpreter::step() {
       break;
     }
     case PRINT: {
-      emit print(QString::number(statement->getFirstExp()->eval(*env)));
+      emit needPrint(QString::number(statement->getFirstExp()->eval(*env)));
       env->currentLine++;
       emit nextStep();
       break;
@@ -142,6 +143,6 @@ void BasicInterpreter::run() {
   mode = Continuous;
   env->currentLine = src.constBegin();
   env->clear();
-  emit print("--------------");
+  emit needPrint("--------------");
   emit nextStep();
 }

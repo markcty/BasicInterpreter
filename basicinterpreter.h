@@ -34,7 +34,7 @@ class BasicInterpreter : public QObject {
   void nextStep();
   void needInput();
   void needLoad();
-  void print(QString output);
+  void needPrint(QString output);
 
  public slots:
   void step();

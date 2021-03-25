@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
   interpreter = new BasicInterpreter();
   connect(interpreter, &BasicInterpreter::needInput, this,
           &MainWindow::getValue);
-  connect(interpreter, &BasicInterpreter::print, this, &MainWindow::print);
+  connect(interpreter, &BasicInterpreter::needPrint, this, &MainWindow::print);
   connect(interpreter, &BasicInterpreter::needLoad, this, &MainWindow::load);
 }
 

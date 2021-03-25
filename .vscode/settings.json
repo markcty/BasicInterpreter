@@ -1,5 +1,7 @@
 {
   "files.associations": {
-    "qapplication": "cpp"
+    "qapplication": "cpp",
+    "__locale": "cpp",
+    "locale": "cpp"
   }
 }
