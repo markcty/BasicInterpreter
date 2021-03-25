@@ -19,10 +19,11 @@ class Statement {
   virtual QString getVariable();
   virtual int getConstant();
   virtual int getLineNumber();
-  virtual QChar getOperator();
+  virtual QString getOperator();
   virtual Expression *getFirstExp();
   virtual Expression *getSecondExp();
   virtual QString toTree() = 0;
+  virtual ~Statement() = default;
 
  protected:
   QString line;
@@ -32,6 +33,7 @@ class RemStatement : public Statement {
  public:
   explicit RemStatement(const QString &l);
   QString toTree() override;
+  ~RemStatement() = default;
 };
 
 class LetStatement : public Statement {
@@ -44,6 +46,7 @@ class LetStatement : public Statement {
   QString getVariable() override;
   Expression *getFirstExp() override;
   QString toTree() override;
+  ~LetStatement();
 };
 
 class PrintStatement : public Statement {
@@ -54,6 +57,7 @@ class PrintStatement : public Statement {
   explicit PrintStatement(QString l);
   Expression *getFirstExp() override;
   QString toTree() override;
+  ~PrintStatement();
 };
 
 class InputStatement : public Statement {
@@ -65,6 +69,7 @@ class InputStatement : public Statement {
   explicit InputStatement(QString l);
   QString getVariable() override;
   QString toTree() override;
+  ~InputStatement() = default;
 };
 
 class GotoStatement : public Statement {
@@ -75,11 +80,12 @@ class GotoStatement : public Statement {
   explicit GotoStatement(QString l);
   int getLineNumber() override;
   QString toTree() override;
+  ~GotoStatement() = default;
 };
 
 class IfStatement : public Statement {
  private:
-  QChar op;
+  QString op;
   Expression *exp1, *exp2;
   int lineNumber;
 
@@ -87,15 +93,17 @@ class IfStatement : public Statement {
   explicit IfStatement(QString l);
   Expression *getFirstExp() override;
   Expression *getSecondExp() override;
-  QChar getOperator() override;
+  QString getOperator() override;
   int getLineNumber() override;
   QString toTree() override;
+  ~IfStatement();
 };
 
 class EndStatement : public Statement {
  public:
   explicit EndStatement(const QString &l);
   QString toTree() override;
+  ~EndStatement() = default;
 };
 
 #endif  // STATEMENT_H

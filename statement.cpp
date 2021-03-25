@@ -65,7 +65,7 @@ Expression *IfStatement::getFirstExp() { return exp1; }
 
 Expression *IfStatement::getSecondExp() { return exp2; }
 
-QChar IfStatement::getOperator() { return op; }
+QString IfStatement::getOperator() { return op; }
 
 int IfStatement::getLineNumber() { return lineNumber; }
 EndStatement::EndStatement(const QString &l) {
@@ -81,22 +81,59 @@ int Statement::getConstant() { return 0; }
 
 int Statement::getLineNumber() { return 0; }
 
-QChar Statement::getOperator() { return ' '; }
+QString Statement::getOperator() { return " "; }
 
 Expression *Statement::getFirstExp() { return nullptr; }
 
 Expression *Statement::getSecondExp() { return nullptr; }
 
-QString RemStatement::toTree() { return ""; }
+QString RemStatement::toTree() {
+  QString tree("REM\n");
+  tree.append("    " + line.midRef(line.indexOf(" ") + 1) + "\n");
+  return tree;
+}
 
-QString LetStatement::toTree() { return ""; }
+QString LetStatement::toTree() {
+  QString tree("LET =\n");
+  tree.append("    " + variable + '\n');
+  tree.append(exp->toTree() + '\n');
+  return tree;
+}
 
-QString InputStatement::toTree() { return ""; }
+LetStatement::~LetStatement() { delete exp; }
 
-QString GotoStatement::toTree() { return ""; }
+QString InputStatement::toTree() {
+  QString tree("INPUT =\n");
+  tree.append("    " + variable + '\n');
+  return tree;
+}
 
-QString IfStatement::toTree() { return ""; }
+QString GotoStatement::toTree() {
+  QString tree("GOTO\n");
+  tree.append("    " + QString::number(lineNumber) + '\n');
+  return tree;
+}
 
-QString EndStatement::toTree() { return ""; }
+QString IfStatement::toTree() {
+  QString tree("IF THEN\n");
+  tree.append("    " + op + '\n');
+  tree.append(exp1->toTree() + '\n');
+  tree.append(exp2->toTree() + '\n');
+  tree.append("    " + QString::number(lineNumber) + '\n');
+  return tree;
+}
 
-QString PrintStatement::toTree() { return ""; }
+IfStatement::~IfStatement() {
+  delete exp1;
+  delete exp2;
+}
+
+QString EndStatement::toTree() { return "END"; }
+
+QString PrintStatement::toTree() {
+  QString tree("PRINT\n");
+  tree.append(exp->toTree() + '\n');
+  return tree;
+}
+
+PrintStatement::~PrintStatement() { delete exp; }

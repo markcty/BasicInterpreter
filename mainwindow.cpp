@@ -20,8 +20,10 @@ MainWindow::MainWindow(QWidget *parent)
   interpreter = new BasicInterpreter();
   connect(interpreter, &BasicInterpreter::needInput, this,
           &MainWindow::getValue);
-  connect(interpreter, &BasicInterpreter::needPrint, this, &MainWindow::print);
+  connect(interpreter, &BasicInterpreter::needOutput, this, &MainWindow::print);
   connect(interpreter, &BasicInterpreter::needLoad, this, &MainWindow::load);
+  connect(interpreter, &BasicInterpreter::needPrintExpTree, this,
+          &MainWindow::printExpTree);
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
@@ -91,3 +93,8 @@ void MainWindow::getValue() {
 }
 
 void MainWindow::print(QString output) { ui->output->append(output); }
+
+void MainWindow::printExpTree(QString output) {
+  ui->expressionTree->clear();
+  ui->expressionTree->setText(output);
+}

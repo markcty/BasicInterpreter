@@ -12,17 +12,18 @@ bool BasicInterpreter::parseCmd(QString cmd) {
           cmd.remove(cmd.indexOf(parts[0]), parts[0].length()).simplified());
     else
       removeLine(index);
-    return true;
   }
   // immdiate statement
   else if (parts[0] == "PRINT") {
     immediateStatement = new PrintStatement(cmd);
-    emit needPrint(
+    emit needOutput(
         QString::number(immediateStatement->getFirstExp()->eval(*env)));
+    delete immediateStatement;
   } else if (parts[0] == "LET") {
     immediateStatement = new LetStatement(cmd);
     env->setValue(immediateStatement->getVariable(),
                   immediateStatement->getFirstExp()->eval(*env));
+    delete immediateStatement;
   } else if (parts[0] == "INPUT") {
     immediateStatement = new InputStatement(cmd);
     emit needInput();
@@ -37,8 +38,7 @@ bool BasicInterpreter::parseCmd(QString cmd) {
   } else if (parts[0] == "CLEAR") {
     src.clear();
     env->clear();
-  } else
-    return false;
+  }
   return true;
 }
 
@@ -97,11 +97,11 @@ void BasicInterpreter::step() {
       break;
     }
     case IF: {
-      QChar op = statement->getOperator();
+      QString op = statement->getOperator();
       int lv = statement->getFirstExp()->eval(*env),
           rv = statement->getSecondExp()->eval(*env);
-      if ((op == '>' && lv > rv) || (op == '=' && lv == rv) ||
-          (op == '<' && lv < rv))
+      if ((op == ">" && lv > rv) || (op == "=" && lv == rv) ||
+          (op == "<" && lv < rv))
         env->currentLine = src.constFind(statement->getLineNumber());
       else
         env->currentLine++;
@@ -109,11 +109,13 @@ void BasicInterpreter::step() {
       break;
     }
     case INPUT: {
+      // the input statement is a special case because it requires
+      // asynchroronous treatment
       emit needInput();
       break;
     }
     case PRINT: {
-      emit needPrint(QString::number(statement->getFirstExp()->eval(*env)));
+      emit needOutput(QString::number(statement->getFirstExp()->eval(*env)));
       env->currentLine++;
       emit nextStep();
       break;
@@ -132,6 +134,7 @@ void BasicInterpreter::step() {
 void BasicInterpreter::setInput(int v) {
   if (mode == Immediate) {
     env->setValue(immediateStatement->getVariable(), v);
+    delete immediateStatement;
   } else {
     auto currentStatement = env->currentLine.value();
     env->setValue(currentStatement->getVariable(), v);
@@ -143,6 +146,10 @@ void BasicInterpreter::setInput(int v) {
 void BasicInterpreter::run() {
   mode = Continuous;
   env->currentLine = src.constBegin();
-  emit needPrint("--------------");
+  QString tree;
+  for (auto i = src.constBegin(); i != src.constEnd(); i++)
+    tree.push_back(QString::number(i.key()) + " " + i.value()->toTree());
+  emit needOutput("--------------");
+  emit needPrintExpTree(tree);
   emit nextStep();
 }

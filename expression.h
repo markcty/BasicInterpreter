@@ -1,6 +1,8 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include <QDebug>
+#include <QList>
 #include <QStack>
 #include <QString>
 #include <QtMath>
@@ -19,13 +21,17 @@ class Environment;
  */
 class Expression {
  private:
-  enum NodeType { CONSTANT, IDENTIFIER, COMPOUND, ERR };
+  enum NodeType { CONSTANT, IDENTIFIER, COMPOUND };
   class Node {
    public:
-    NodeType type = ERR;
+    NodeType type;
     Node *left, *right;
     explicit Node(Node *left = nullptr, Node *right = nullptr);
     virtual int eval(const Environment &context) const = 0;
+    virtual int getConstant();
+    virtual QString getVariable();
+    virtual QString getOperator();
+    virtual ~Node() = default;
   };
   /*
    * Class: ConstantNode
@@ -35,9 +41,10 @@ class Expression {
   class ConstantNode : public Node {
    public:
     int value = 0;
-    NodeType type = CONSTANT;
     int eval(const Environment &env) const override;
     explicit ConstantNode(const QString &token);
+    int getConstant() override;
+    ~ConstantNode() = default;
   };
   /*
    * Class: IdentifierNode
@@ -47,9 +54,10 @@ class Expression {
   class IdentifierNode : public Node {
    public:
     QString variable;
-    NodeType type = IDENTIFIER;
     int eval(const Environment &env) const override;
     explicit IdentifierNode(const QString &token);
+    QString getVariable() override;
+    ~IdentifierNode() = default;
   };
   /*
    * Class: CompoundNode
@@ -59,18 +67,21 @@ class Expression {
   class CompoundNode : public Node {
    public:
     QString op;
-    NodeType type = COMPOUND;
     int eval(const Environment &env) const override;
     explicit CompoundNode(const QString &c);
+    QString getOperator() override;
+    ~CompoundNode();
   };
 
-  Node *root{};
+  Node *root = nullptr;
 
  public:
   explicit Expression(QString exp);
   // evaluate the expression and return the result
   int eval(const Environment &context) const;
   QString toString() const;
+  QString toTree() const;
+  ~Expression();
 };
 
 #endif  // EXPRESSION_H

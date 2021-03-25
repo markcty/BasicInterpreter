@@ -88,6 +88,40 @@ Expression::Expression(QString exp) {
 }
 QString Expression::toString() const { return QString(); }
 
+QString Expression::toTree() const {
+  QStringList tree;
+  QList<Node *> nodes;
+  nodes.push_back(root);
+  int level = 0;
+  while (!nodes.isEmpty()) {
+    level++;
+    QList<Node *> next;
+    for (const auto p : nodes) {
+      QString s;
+      qDebug() << p->type;
+      s.fill(' ', level * 4);
+      switch (p->type) {
+        case CONSTANT:
+          s.append(QString::number(p->getConstant()));
+          break;
+        case IDENTIFIER:
+          s.append(p->getVariable());
+          break;
+        case COMPOUND:
+          s.append(p->getOperator());
+          next.push_back(p->left);
+          next.push_back(p->right);
+          break;
+      }
+      tree.push_back(s);
+    }
+    nodes = next;
+  }
+  return tree.join("\n");
+}
+
+Expression::~Expression() { delete root; }
+
 int Expression::eval(const Environment &context) const {
   return root->eval(context);
 }
@@ -97,14 +131,23 @@ int Expression::IdentifierNode::eval(const Environment &env) const {
 }
 
 Expression::IdentifierNode::IdentifierNode(const QString &token)
-    : variable(QString(token)) {}
+    : variable(QString(token)) {
+  type = IDENTIFIER;
+}
+
+QString Expression::IdentifierNode::getVariable() { return variable; }
 
 int Expression::ConstantNode::eval(const Environment &env) const {
   return value;
 }
 
 Expression::ConstantNode::ConstantNode(const QString &token)
-    : value(token.toInt()) {}
+    : value(token.toInt()) {
+  type = CONSTANT;
+}
+
+int Expression::ConstantNode::getConstant() { return value; }
+
 int Expression::CompoundNode::eval(const Environment &env) const {
   int lv = left->eval(env), rv = right->eval(env);
   if (op == "**") return qPow(lv, rv);
@@ -115,7 +158,22 @@ int Expression::CompoundNode::eval(const Environment &env) const {
   return 0;
 }
 
-Expression::CompoundNode::CompoundNode(const QString &c) : op(c) {}
+Expression::CompoundNode::CompoundNode(const QString &c) : op(c) {
+  type = COMPOUND;
+}
+
+QString Expression::CompoundNode::getOperator() { return op; }
+
+Expression::CompoundNode::~CompoundNode() {
+  if (left) delete left;
+  if (right) delete right;
+}
 
 Expression::Node::Node(Expression::Node *left, Expression::Node *right)
     : left(left), right(right) {}
+
+int Expression::Node::getConstant() { return 0; }
+
+QString Expression::Node::getVariable() { return ""; }
+
+QString Expression::Node::getOperator() { return ""; }

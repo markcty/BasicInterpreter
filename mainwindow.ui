@@ -42,7 +42,13 @@
          </widget>
         </item>
         <item>
-         <widget class="QTextBrowser" name="source"/>
+         <widget class="QTextBrowser" name="source">
+          <property name="font">
+           <font>
+            <family>Cascadia Code</family>
+           </font>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -56,7 +62,13 @@
          </widget>
         </item>
         <item>
-         <widget class="QTextEdit" name="output"/>
+         <widget class="QTextEdit" name="output">
+          <property name="font">
+           <font>
+            <family>Cascadia Code</family>
+           </font>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -72,7 +84,13 @@
        </widget>
       </item>
       <item>
-       <widget class="QTextBrowser" name="expressionTree"/>
+       <widget class="QTextBrowser" name="expressionTree">
+        <property name="font">
+         <font>
+          <family>Cascadia Code</family>
+         </font>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -111,7 +129,13 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="cmd"/>
+       <widget class="QLineEdit" name="cmd">
+        <property name="font">
+         <font>
+          <family>Cascadia Code</family>
+         </font>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

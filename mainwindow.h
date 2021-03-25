@@ -38,5 +38,6 @@ class MainWindow : public QMainWindow {
   void parseCMD();
   void getValue();
   void print(QString output);
+  void printExpTree(QString output);
 };
 #endif  // MAINWINDOW_H
