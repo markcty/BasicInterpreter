@@ -16,7 +16,7 @@ Expression::Expression(QString exp) {
   // add a 0 before - to dealth with negative number
   int j = 0;
   while ((j = exp.indexOf('-', j)) != -1) {
-    if (exp[j - 1] == '(') exp.insert(j - 1, QString(" "));
+    if (exp[j - 1] == '(') exp.insert(j, QString("0"));
     ++j;
   }
   int i = 0, nexti = 0, length = exp.length();
