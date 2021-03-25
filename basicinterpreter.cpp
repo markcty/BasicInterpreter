@@ -13,13 +13,13 @@ bool BasicInterpreter::parseCmd(QString cmd) {
       removeLine(index);
     return true;
   }
-  if (cmd == "RUN") {
+  if (parts[0] == "RUN") {
     run();
-  } else if (cmd == "LOAD") {
+  } else if (parts[0] == "LOAD") {
     //    mainWindow->load();
-  } else if (cmd == "LIST") {
+  } else if (parts[0] == "LIST") {
     // no need to implement
-  } else if (cmd == "CLEAR") {
+  } else if (parts[0] == "CLEAR") {
     src.clear();
   } else
     return false;
