@@ -36,6 +36,7 @@ bool BasicInterpreter::parseCmd(QString cmd) {
     // no need to implement
   } else if (parts[0] == "CLEAR") {
     src.clear();
+    env->clear();
   } else
     return false;
   return true;
@@ -142,7 +143,6 @@ void BasicInterpreter::setInput(int v) {
 void BasicInterpreter::run() {
   mode = Continuous;
   env->currentLine = src.constBegin();
-  env->clear();
   emit needPrint("--------------");
   emit nextStep();
 }

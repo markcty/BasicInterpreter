@@ -10,6 +10,7 @@ Expression::Expression(QString exp) {
   };
 
   // tokenize
+  if (exp[0] == '-') exp.push_front('0');
   int i = 0, nexti = 0, length = exp.length();
   QStringList tokens;
   while (i < length) {
