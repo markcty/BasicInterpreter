@@ -32,6 +32,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         QString input = ui->output->toPlainText();
         input = input.mid(input.lastIndexOf('?') + 1);
         interpreter->setInput(input.toInt());
+        ui->cmd->setFocus();
         return true;  // do not process this event further
       }
     }

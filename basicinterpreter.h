@@ -14,8 +14,12 @@
 class BasicInterpreter : public QObject {
   Q_OBJECT
  private:
+  enum Mode { Immediate, Continuous } mode;
+
   QMap<int, Statement *> src;
   Environment *env;
+
+  Statement *immediateStatement;
 
   void insertLine(int index, QString line);
   void removeLine(int index);

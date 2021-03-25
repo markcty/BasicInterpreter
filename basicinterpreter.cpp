@@ -4,6 +4,7 @@ bool BasicInterpreter::parseCmd(QString cmd) {
   auto parts = cmd.split(" ", QString::SkipEmptyParts);
   bool isLineNumber = false;
   int index = parts[0].toInt(&isLineNumber);
+  // part of a program
   if (isLineNumber) {
     if (parts.length() > 1)
       insertLine(
@@ -13,10 +14,23 @@ bool BasicInterpreter::parseCmd(QString cmd) {
       removeLine(index);
     return true;
   }
-  if (parts[0] == "RUN") {
+  // immdiate statement
+  else if (parts[0] == "PRINT") {
+    immediateStatement = new PrintStatement(cmd);
+    emit print(QString::number(immediateStatement->getFirstExp()->eval(*env)));
+  } else if (parts[0] == "LET") {
+    immediateStatement = new LetStatement(cmd);
+    env->setValue(immediateStatement->getVariable(),
+                  immediateStatement->getFirstExp()->eval(*env));
+  } else if (parts[0] == "INPUT") {
+    immediateStatement = new InputStatement(cmd);
+    emit needInput();
+  }
+  // command
+  else if (parts[0] == "RUN") {
     run();
   } else if (parts[0] == "LOAD") {
-    //    mainWindow->load();
+    // TODO: mainWindow->load();
   } else if (parts[0] == "LIST") {
     // no need to implement
   } else if (parts[0] == "CLEAR") {
@@ -61,7 +75,7 @@ QString BasicInterpreter::toString() const {
   return lines.join("\n");
 }
 
-BasicInterpreter::BasicInterpreter() : env(new Environment) {
+BasicInterpreter::BasicInterpreter() : mode(Immediate), env(new Environment) {
   connect(this, &BasicInterpreter::nextStep, this, &BasicInterpreter::step);
 }
 
@@ -114,10 +128,10 @@ void BasicInterpreter::step() {
 }
 
 void BasicInterpreter::setInput(int v) {
-  auto currentStatement = env->currentLine.value();
-  if (currentStatement->type != INPUT)
-    qDebug() << "not INPUT statement but get setInput";
-  else {
+  if (mode == Immediate) {
+    env->setValue(immediateStatement->getVariable(), v);
+  } else {
+    auto currentStatement = env->currentLine.value();
     env->setValue(currentStatement->getVariable(), v);
     env->currentLine++;
     emit nextStep();
@@ -125,6 +139,7 @@ void BasicInterpreter::setInput(int v) {
 }
 
 void BasicInterpreter::run() {
+  mode = Continuous;
   env->currentLine = src.constBegin();
   env->clear();
   emit print("--------------");
