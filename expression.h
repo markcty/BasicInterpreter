@@ -3,6 +3,7 @@
 
 #include <QStack>
 #include <QString>
+#include <QtMath>
 
 #include "basicinterpreter.h"
 #include "environment.h"
@@ -57,10 +58,10 @@ class Expression {
    */
   class CompoundNode : public Node {
    public:
-    QChar op;
+    QString op;
     NodeType type = COMPOUND;
     int eval(const Environment &env) const override;
-    explicit CompoundNode(const QChar &c);
+    explicit CompoundNode(const QString &c);
   };
 
   Node *root{};

@@ -2,10 +2,11 @@
 Expression::Expression(QString exp) {
   exp.remove(" ");
   // return the precedence of an operator, -1 if not an operator
-  auto getPre = [](QChar c) {
-    if (c == '(' || c == ')') return 2;
-    if (c == '*' || c == '/') return 1;
-    if (c == '+' || c == '-') return 0;
+  auto getPre = [](QString s) {
+    if (s == "**") return 3;
+    if (s == "(" || s == ")") return 2;
+    if (s == "*" || s == "/") return 1;
+    if (s == "+" || s == "-") return 0;
     return -1;
   };
 
@@ -13,7 +14,7 @@ Expression::Expression(QString exp) {
   // wrap the expression in a parenthesis can simplify parsing
   exp.push_front("(");
   exp.push_back(")");
-  // add a 0 before - to dealth with negative number
+  // add a 0 before - to deal with negative number
   int j = 0;
   while ((j = exp.indexOf('-', j)) != -1) {
     if (exp[j - 1] == '(') exp.insert(j, QString("0"));
@@ -22,9 +23,13 @@ Expression::Expression(QString exp) {
   int i = 0, nexti = 0, length = exp.length();
   QStringList tokens;
   while (i < length) {
-    if (getPre(exp[i]) >= 0)
-      tokens.push_back(QString(exp[i++]));
-    else {
+    if (getPre(QString(exp[i])) >= 0) {
+      if (i < length - 1 && exp[i] == '*' && exp[i + 1] == '*') {
+        tokens.push_back("**");
+        i += 2;
+      } else
+        tokens.push_back(QString(exp[i++]));
+    } else {
       nexti = i;
       if (exp[i].isDigit()) {
         // is constantf
@@ -40,26 +45,26 @@ Expression::Expression(QString exp) {
   }
 
   // parse
-  QStack<QChar> operators;
+  QStack<QString> operators;
   QStack<Node *> operands;
 
   for (const QString &token : tokens) {
-    if (getPre(token[0]) >= 0) {
+    if (getPre(token) >= 0) {
       // current token is an operator or a parenthesis
-      QChar op = token[0];
-      QChar top;
+      QString op = token;
+      QString top;
       Node *node;
-      if (op == ')')
+      if (op == ")")
         while ((top = operators.pop()) != '(') {
           node = new CompoundNode(top);
           node->right = operands.pop();
           node->left = operands.pop();
           operands.push(node);
         }
-      else if (op == '(')
-        operators.push('(');
+      else if (op == "(")
+        operators.push("(");
       else {
-        while (!operators.empty() && operators.top() != '(' &&
+        while (!operators.empty() && operators.top() != "(" && op != "**" &&
                getPre(operators.top()) >= getPre(op)) {
           top = operators.pop();
           node = new CompoundNode(top);
@@ -102,14 +107,15 @@ Expression::ConstantNode::ConstantNode(const QString &token)
     : value(token.toInt()) {}
 int Expression::CompoundNode::eval(const Environment &env) const {
   int lv = left->eval(env), rv = right->eval(env);
-  if (op == '+') return lv + rv;
-  if (op == '-') return lv - rv;
-  if (op == '*') return lv * rv;
-  if (op == '/') return lv / rv;
+  if (op == "**") return qPow(lv, rv);
+  if (op == "+") return lv + rv;
+  if (op == "-") return lv - rv;
+  if (op == "*") return lv * rv;
+  if (op == "/") return lv / rv;
   return 0;
 }
 
-Expression::CompoundNode::CompoundNode(const QChar &c) : op(c) {}
+Expression::CompoundNode::CompoundNode(const QString &c) : op(c) {}
 
 Expression::Node::Node(Expression::Node *left, Expression::Node *right)
     : left(left), right(right) {}
