@@ -7,7 +7,9 @@ RemStatement::RemStatement(const QString &l) {
 LetStatement::LetStatement(QString l) {
   line = l;
   l = l.remove("LET").simplified();
+  if (l.indexOf("=") == -1) throw QStringException("Invalid Statement");
   auto part = l.split("=");
+  if (part.size() != 2) throw QStringException("Invalid Statement");
   variable = part[0].simplified();
   exp = new Expression(part[1].simplified());
   type = LET;
@@ -38,7 +40,9 @@ QString InputStatement::getVariable() { return variable; }
 GotoStatement::GotoStatement(QString l) {
   line = l;
   l = l.remove("GOTO").simplified();
-  lineNumber = l.toInt();
+  bool ok = false;
+  lineNumber = l.toInt(&ok);
+  if (!ok) throw QStringException("Invalid Statement");
   type = GOTO;
 }
 
@@ -53,11 +57,15 @@ IfStatement::IfStatement(QString l) {
     op = '<';
   else if (l.contains('>'))
     op = '>';
+  else
+    throw QStringException("Invalid Statement");
   auto split_op = l.split(op);
   exp1 = new Expression(split_op[0].simplified());
   auto split_then = split_op[1].split("THEN");
   exp2 = new Expression(split_then[0].simplified());
-  lineNumber = split_then[1].toInt();
+  bool ok = false;
+  lineNumber = split_then[1].toInt(&ok);
+  if (!ok) throw QStringException("Invalid Statement");
   type = IF;
 }
 

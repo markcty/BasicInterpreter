@@ -30,6 +30,7 @@ class MainWindow : public QMainWindow {
  private:
   Ui::MainWindow *ui;
   BasicInterpreter *interpreter;
+  void newInterpreter();
 
  public slots:
   void load();
@@ -39,5 +40,6 @@ class MainWindow : public QMainWindow {
   void getValue();
   void print(QString output);
   void printExpTree(QString output);
+  void clearScreen();
 };
 #endif  // MAINWINDOW_H

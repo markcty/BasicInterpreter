@@ -40,6 +40,7 @@ Expression::Expression(QString exp) {
         while (exp[nexti].isLetterOrNumber()) nexti++;
         tokens.push_back(exp.mid(i, nexti - i));
       }
+      if (i == nexti) throw QStringException("Invalid Expression!");
       i = nexti;
     }
   }
@@ -54,20 +55,26 @@ Expression::Expression(QString exp) {
       QString op = token;
       QString top;
       Node *node;
-      if (op == ")")
-        while ((top = operators.pop()) != '(') {
+      if (op == ")") {
+        if (operators.indexOf("(") == -1)
+          throw QStringException("Invalid Expression!");
+        while (!operators.empty() && (top = operators.pop()) != "(") {
           node = new CompoundNode(top);
+          if (operands.size() < 2)
+            throw QStringException("Invalid Expression!");
           node->right = operands.pop();
           node->left = operands.pop();
           operands.push(node);
         }
-      else if (op == "(")
+      } else if (op == "(")
         operators.push("(");
       else {
         while (!operators.empty() && operators.top() != "(" && op != "**" &&
                getPre(operators.top()) >= getPre(op)) {
           top = operators.pop();
           node = new CompoundNode(top);
+          if (operands.size() < 2)
+            throw QStringException("Invalid Expression!");
           node->right = operands.pop();
           node->left = operands.pop();
           operands.push(node);
@@ -84,6 +91,8 @@ Expression::Expression(QString exp) {
       operands.push(node);
     }
   }
+  if (!operators.empty() || operands.size() != 1)
+    throw QStringException("Invalid Expression!");
   root = operands.pop();
 }
 QString Expression::toString() const { return QString(); }
@@ -98,7 +107,6 @@ QString Expression::toTree() const {
     QList<Node *> next;
     for (const auto p : nodes) {
       QString s;
-      qDebug() << p->type;
       s.fill(' ', level * 4);
       switch (p->type) {
         case CONSTANT:

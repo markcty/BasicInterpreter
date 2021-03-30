@@ -17,13 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
   ui->output->setReadOnly(true);
   ui->output->installEventFilter(this);
 
-  interpreter = new BasicInterpreter();
-  connect(interpreter, &BasicInterpreter::needInput, this,
-          &MainWindow::getValue);
-  connect(interpreter, &BasicInterpreter::needOutput, this, &MainWindow::print);
-  connect(interpreter, &BasicInterpreter::needLoad, this, &MainWindow::load);
-  connect(interpreter, &BasicInterpreter::needPrintExpTree, this,
-          &MainWindow::printExpTree);
+  newInterpreter();
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
@@ -48,8 +42,19 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
 
 MainWindow::~MainWindow() { delete ui; }
 
+void MainWindow::newInterpreter() {
+  interpreter = new BasicInterpreter();
+  connect(interpreter, &BasicInterpreter::needInput, this,
+          &MainWindow::getValue);
+  connect(interpreter, &BasicInterpreter::needOutput, this, &MainWindow::print);
+  connect(interpreter, &BasicInterpreter::needLoad, this, &MainWindow::load);
+  connect(interpreter, &BasicInterpreter::needPrintExpTree, this,
+          &MainWindow::printExpTree);
+  connect(interpreter, &BasicInterpreter::clearScreen, this,
+          &MainWindow::clearScreen);
+}
+
 void MainWindow::load() {
-  qDebug() << "load!";
   QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
   QFile file(fileName);
   if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
@@ -60,8 +65,15 @@ void MainWindow::load() {
   setWindowTitle(fileName);
   QTextStream in(&file);
 
-  while (!in.atEnd()) {
-    interpreter->parseCmd(in.readLine());
+  if (interpreter) delete interpreter;
+  newInterpreter();
+  clearScreen();
+  try {
+    while (!in.atEnd()) {
+      interpreter->parseCmd(in.readLine());
+    }
+  } catch (const QStringException &e) {
+    QMessageBox::warning(this, "Error", e.what());
   }
 
   file.close();
@@ -69,19 +81,34 @@ void MainWindow::load() {
 }
 
 void MainWindow::clear() {
-  qDebug("clear!");
-  ui->source->clear();
-  interpreter->parseCmd("CLEAR");
+  try {
+    interpreter->parseCmd("CLEAR");
+  } catch (const QStringException &e) {
+    QMessageBox::warning(this, "Error", e.what());
+  }
+}
+
+void MainWindow::clearScreen() {
+  ui->cmd->clear();
+  ui->output->clear();
+  ui->expressionTree->clear();
+  ui->source->setText(interpreter->toString());
 }
 
 void MainWindow::execute() {
-  qDebug("run!");
-  interpreter->parseCmd("RUN");
+  try {
+    interpreter->parseCmd("RUN");
+  } catch (const QStringException &e) {
+    QMessageBox::warning(this, "Error", e.what());
+  }
 }
 
 void MainWindow::parseCMD() {
-  qDebug() << "cmd!";
-  interpreter->parseCmd(ui->cmd->text().simplified());
+  try {
+    interpreter->parseCmd(ui->cmd->text().simplified());
+  } catch (const QStringException &e) {
+    QMessageBox::warning(this, "Error", e.what());
+  }
   ui->cmd->clear();
   ui->source->setText(interpreter->toString());
 }

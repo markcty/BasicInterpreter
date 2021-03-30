@@ -1,6 +1,6 @@
 ﻿#include "basicinterpreter.h"
 
-bool BasicInterpreter::parseCmd(QString cmd) {
+void BasicInterpreter::parseCmd(QString cmd) {
   auto parts = cmd.split(" ", QString::SkipEmptyParts);
   bool isLineNumber = false;
   int index = parts[0].toInt(&isLineNumber);
@@ -15,21 +15,25 @@ bool BasicInterpreter::parseCmd(QString cmd) {
   }
   // immdiate statement
   else if (parts[0] == "PRINT") {
+    mode = Immediate;
     immediateStatement = new PrintStatement(cmd);
     emit needOutput(
         QString::number(immediateStatement->getFirstExp()->eval(*env)));
     delete immediateStatement;
   } else if (parts[0] == "LET") {
+    mode = Immediate;
     immediateStatement = new LetStatement(cmd);
     env->setValue(immediateStatement->getVariable(),
                   immediateStatement->getFirstExp()->eval(*env));
     delete immediateStatement;
   } else if (parts[0] == "INPUT") {
+    mode = Immediate;
     immediateStatement = new InputStatement(cmd);
     emit needInput();
   }
   // command
   else if (parts[0] == "RUN") {
+    emit clearScreen();
     run();
   } else if (parts[0] == "LOAD") {
     emit needLoad();
@@ -38,8 +42,9 @@ bool BasicInterpreter::parseCmd(QString cmd) {
   } else if (parts[0] == "CLEAR") {
     src.clear();
     env->clear();
-  }
-  return true;
+    emit clearScreen();
+  } else
+    throw QStringException("Invalid Command!");
 }
 
 void BasicInterpreter::insertLine(int index, QString line) {
@@ -61,7 +66,7 @@ void BasicInterpreter::insertLine(int index, QString line) {
   else if (type == "END")
     statement = new EndStatement(line);
   else
-    return;
+    throw QStringException("Invalid Statement");
   src[index] = statement;
 }
 
@@ -82,6 +87,8 @@ BasicInterpreter::BasicInterpreter() : mode(Immediate), env(new Environment) {
 }
 
 void BasicInterpreter::step() {
+  if (env->currentLine == src.constEnd())
+    throw QStringException("The program ends without an END statement");
   Statement *statement = env->currentLine.value();
   switch (statement->type) {
     case LET: {
@@ -93,6 +100,10 @@ void BasicInterpreter::step() {
     }
     case GOTO: {
       env->currentLine = src.constFind(statement->getLineNumber());
+      if (env->currentLine == src.constEnd())
+        throw QStringException("Line " +
+                               QString::number(statement->getLineNumber()) +
+                               " does not exist");
       emit nextStep();
       break;
     }
@@ -101,9 +112,13 @@ void BasicInterpreter::step() {
       int lv = statement->getFirstExp()->eval(*env),
           rv = statement->getSecondExp()->eval(*env);
       if ((op == ">" && lv > rv) || (op == "=" && lv == rv) ||
-          (op == "<" && lv < rv))
+          (op == "<" && lv < rv)) {
         env->currentLine = src.constFind(statement->getLineNumber());
-      else
+        if (env->currentLine == src.constEnd())
+          throw QStringException("Line " +
+                                 QString::number(statement->getLineNumber()) +
+                                 " does not exist");
+      } else
         env->currentLine++;
       emit nextStep();
       break;
@@ -149,7 +164,6 @@ void BasicInterpreter::run() {
   QString tree;
   for (auto i = src.constBegin(); i != src.constEnd(); i++)
     tree.push_back(QString::number(i.key()) + " " + i.value()->toTree());
-  emit needOutput("--------------");
   emit needPrintExpTree(tree);
   emit nextStep();
 }

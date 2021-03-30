@@ -14,6 +14,7 @@ SOURCES += \
     expression.cpp \
     main.cpp \
     mainwindow.cpp \
+    qstringexception.cpp \
     statement.cpp
 
 HEADERS += \
@@ -21,6 +22,7 @@ HEADERS += \
     environment.h \
     expression.h \
     mainwindow.h \
+    qstringexception.h \
     statement.h
 
 FORMS += \

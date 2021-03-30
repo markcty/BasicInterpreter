@@ -26,7 +26,7 @@ class BasicInterpreter : public QObject {
   void run();
 
  public:
-  bool parseCmd(QString cmd);
+  void parseCmd(QString cmd);
   QString toString() const;
   BasicInterpreter();
 
@@ -36,6 +36,7 @@ class BasicInterpreter : public QObject {
   void needLoad();
   void needOutput(QString output);
   void needPrintExpTree(QString tree);
+  void clearScreen();
 
  public slots:
   void step();

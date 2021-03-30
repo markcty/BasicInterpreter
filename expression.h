@@ -6,9 +6,11 @@
 #include <QStack>
 #include <QString>
 #include <QtMath>
+#include <exception>
 
 #include "basicinterpreter.h"
 #include "environment.h"
+#include "qstringexception.h"
 #include "statement.h"
 
 class Environment;
