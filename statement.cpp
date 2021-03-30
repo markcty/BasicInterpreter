@@ -124,8 +124,8 @@ QString GotoStatement::toTree() {
 
 QString IfStatement::toTree() {
   QString tree("IF THEN\n");
-  tree.append("    " + op + '\n');
   tree.append(exp1->toTree() + '\n');
+  tree.append("    " + op + '\n');
   tree.append(exp2->toTree() + '\n');
   tree.append("    " + QString::number(lineNumber) + '\n');
   return tree;
