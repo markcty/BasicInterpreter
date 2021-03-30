@@ -1,6 +1,7 @@
 #ifndef BASICINTERPRETER_H
 #define BASICINTERPRETER_H
 
+#include <QApplication>
 #include <QDebug>
 #include <QMap>
 #include <QObject>

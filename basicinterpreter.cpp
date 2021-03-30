@@ -43,6 +43,12 @@ void BasicInterpreter::parseCmd(QString cmd) {
     src.clear();
     env->clear();
     emit clearScreen();
+  } else if (parts[0] == "QUIT") {
+    QApplication::quit();
+  } else if (parts[0] == "HELP") {
+    emit needOutput(
+        "Basic Interpreter implemented by markcty. Please read Basic-doc "
+        "before use");
   } else
     throw QStringException("Invalid Command!");
 }
