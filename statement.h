@@ -12,6 +12,11 @@ class Expression;
 
 enum StatementType { REM, LET, PRINT, INPUT, GOTO, IF, END, NONE };
 
+/*
+ * Class: Statement
+ * ----------------
+ * This class stores a statement
+ */
 class Statement {
  public:
   StatementType type = NONE;
@@ -63,7 +68,6 @@ class PrintStatement : public Statement {
 class InputStatement : public Statement {
  private:
   QString variable;
-  int value = 0;
 
  public:
   explicit InputStatement(QString l);

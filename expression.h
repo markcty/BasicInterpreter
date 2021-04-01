@@ -24,6 +24,12 @@ class Environment;
 class Expression {
  private:
   enum NodeType { CONSTANT, IDENTIFIER, COMPOUND };
+
+  /*
+   * Class: Node
+   * -----------------
+   * A virtual class which all types of node inherit from
+   */
   class Node {
    public:
     NodeType type;
@@ -35,6 +41,7 @@ class Expression {
     virtual QString getOperator();
     virtual ~Node() = default;
   };
+
   /*
    * Class: ConstantNode
    * ------------------
@@ -48,6 +55,7 @@ class Expression {
     int getConstant() override;
     ~ConstantNode() = default;
   };
+
   /*
    * Class: IdentifierNode
    * --------------------
@@ -61,9 +69,10 @@ class Expression {
     QString getVariable() override;
     ~IdentifierNode() = default;
   };
+
   /*
    * Class: CompoundNode
-   * ------------------
+   * -------------------
    * This subclass represents a compound expression node.
    */
   class CompoundNode : public Node {
@@ -79,9 +88,14 @@ class Expression {
 
  public:
   explicit Expression(QString exp);
+
   // evaluate the expression and return the result
   int eval(const Environment &context) const;
+
+  // return the original statement
   QString toString() const;
+
+  // return the expression tree of the statement
   QString toTree() const;
   ~Expression();
 };

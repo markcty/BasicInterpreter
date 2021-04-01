@@ -18,6 +18,12 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+/*
+ * Class: MainWindow
+ * -----------------
+ * This class is the GUI interface of Basic Interpreter
+ */
+
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
@@ -30,16 +36,33 @@ class MainWindow : public QMainWindow {
  private:
   Ui::MainWindow *ui;
   BasicInterpreter *interpreter;
+
+  // wrapper for create a new interpreter and connect all signals
   void newInterpreter();
 
  public slots:
+  // handler for load button
   void load();
+
+  // handler for clear button
   void clear();
+
+  // handler for run button
   void execute();
-  void parseCMD();
-  void getValue();
+
+  // forward command to basic interpreter
+  void getCMD();
+
+  // get a input from output window
+  void getInput();
+
+  // print output to output window
   void print(QString output);
+
+  // print a exp tree to expression tree window
   void printExpTree(QString output);
+
+  // clear screen
   void clearScreen();
 };
 #endif  // MAINWINDOW_H

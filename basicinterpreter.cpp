@@ -1,7 +1,7 @@
 ﻿#include "basicinterpreter.h"
 
 void BasicInterpreter::parseCmd(QString cmd) {
-  auto parts = cmd.split(" ", QString::SkipEmptyParts);
+  auto parts = cmd.split(" ", Qt::SkipEmptyParts);
   bool isLineNumber = false;
   int index = parts[0].toInt(&isLineNumber);
   // part of a program
@@ -13,7 +13,7 @@ void BasicInterpreter::parseCmd(QString cmd) {
     else
       removeLine(index);
   }
-  // immdiate statement
+  // immediate statement
   else if (parts[0] == "PRINT") {
     mode = Immediate;
     immediateStatement = new PrintStatement(cmd);
@@ -33,7 +33,7 @@ void BasicInterpreter::parseCmd(QString cmd) {
   }
   // command
   else if (parts[0] == "RUN") {
-    emit clearScreen();
+    emit needClearScreen();
     run();
   } else if (parts[0] == "LOAD") {
     emit needLoad();
@@ -42,7 +42,7 @@ void BasicInterpreter::parseCmd(QString cmd) {
   } else if (parts[0] == "CLEAR") {
     src.clear();
     env->clear();
-    emit clearScreen();
+    emit needClearScreen();
   } else if (parts[0] == "QUIT") {
     QApplication::quit();
   } else if (parts[0] == "HELP") {
@@ -131,7 +131,7 @@ void BasicInterpreter::step() {
     }
     case INPUT: {
       // the input statement is a special case because it requires
-      // asynchroronous treatment
+      // asynchronous treatment
       emit needInput();
       break;
     }

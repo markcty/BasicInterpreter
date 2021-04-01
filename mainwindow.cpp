@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
   connect(ui->loadAction, &QAction::triggered, this, &MainWindow::load);
   connect(ui->runAction, &QAction::triggered, this, &MainWindow::execute);
   connect(ui->clearAction, &QAction::triggered, this, &MainWindow::clear);
-  connect(ui->cmd, &QLineEdit::returnPressed, this, &MainWindow::parseCMD);
+  connect(ui->cmd, &QLineEdit::returnPressed, this, &MainWindow::getCMD);
 
   ui->output->setReadOnly(true);
   ui->output->installEventFilter(this);
@@ -45,12 +45,12 @@ MainWindow::~MainWindow() { delete ui; }
 void MainWindow::newInterpreter() {
   interpreter = new BasicInterpreter();
   connect(interpreter, &BasicInterpreter::needInput, this,
-          &MainWindow::getValue);
+          &MainWindow::getInput);
   connect(interpreter, &BasicInterpreter::needOutput, this, &MainWindow::print);
   connect(interpreter, &BasicInterpreter::needLoad, this, &MainWindow::load);
   connect(interpreter, &BasicInterpreter::needPrintExpTree, this,
           &MainWindow::printExpTree);
-  connect(interpreter, &BasicInterpreter::clearScreen, this,
+  connect(interpreter, &BasicInterpreter::needClearScreen, this,
           &MainWindow::clearScreen);
 }
 
@@ -103,7 +103,7 @@ void MainWindow::execute() {
   }
 }
 
-void MainWindow::parseCMD() {
+void MainWindow::getCMD() {
   try {
     interpreter->parseCmd(ui->cmd->text().simplified());
   } catch (const QStringException &e) {
@@ -113,7 +113,7 @@ void MainWindow::parseCMD() {
   ui->source->setText(interpreter->toString());
 }
 
-void MainWindow::getValue() {
+void MainWindow::getInput() {
   ui->output->append("        ?  ");
   ui->output->setReadOnly(false);
   ui->output->setFocus();
