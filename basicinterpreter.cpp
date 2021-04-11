@@ -1,7 +1,7 @@
 ﻿#include "basicinterpreter.h"
 
 void BasicInterpreter::parseCmd(QString cmd) {
-  auto parts = cmd.split(" ", Qt::SkipEmptyParts);
+  auto parts = cmd.split(" ", QString::SkipEmptyParts);
   bool isLineNumber = false;
   int index = parts[0].toInt(&isLineNumber);
   // part of a program
@@ -93,8 +93,10 @@ BasicInterpreter::BasicInterpreter() : mode(Immediate), env(new Environment) {
 }
 
 void BasicInterpreter::step() {
-  if (env->currentLine == src.constEnd())
-    throw QStringException("The program ends without an END statement");
+  if (env->currentLine == src.constEnd()) {
+    qDebug() << ("The program ends without an END statement");
+    return;
+  }
   Statement *statement = env->currentLine.value();
   switch (statement->type) {
     case LET: {
