@@ -135,6 +135,8 @@ int Expression::eval(const Environment &context) const {
 }
 
 int Expression::IdentifierNode::eval(const Environment &env) const {
+  if (env.getType(variable) == STR)
+    throw QStringException("expression contains's variable that has type STR");
   return env.getIntValue(variable);
 }
 
@@ -145,7 +147,7 @@ Expression::IdentifierNode::IdentifierNode(const QString &token)
 
 QString Expression::IdentifierNode::getVariable() { return variable; }
 
-int Expression::ConstantNode::eval(const Environment &env) const {
+int Expression::ConstantNode::eval(const Environment & /* unused */) const {
   return value;
 }
 

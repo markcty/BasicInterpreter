@@ -1,12 +1,12 @@
 #include "statement.h"
 RemStatement::RemStatement(const QString &l) {
-  type = REM;
+  statementType = REM;
   line = l;
 }
 
 LetStatement::LetStatement(QString l) {
   line = l;
-  type = LET;
+  statementType = LET;
 }
 
 QString LetStatement::getVariable() { return variable; }
@@ -15,28 +15,28 @@ Expression *LetStatement::getFirstExp() { return exp; }
 
 PrintStatement::PrintStatement(QString l) {
   line = l;
-  type = PRINT;
+  statementType = PRINT;
 }
 
 Expression *PrintStatement::getFirstExp() { return exp; }
 
 InputStatement::InputStatement(QString l) {
   line = l;
-  type = INPUT;
+  statementType = INPUT;
 }
 
 QString InputStatement::getVariable() { return variable; }
 
 GotoStatement::GotoStatement(QString l) {
   line = l;
-  type = GOTO;
+  statementType = GOTO;
 }
 
 int GotoStatement::getLineNumber() { return lineNumber; }
 
 IfStatement::IfStatement(QString l) {
   line = l;
-  type = IF;
+  statementType = IF;
 }
 
 Expression *IfStatement::getFirstExp() { return exp1; }
@@ -69,7 +69,7 @@ void IfStatement::parse() {
 
 EndStatement::EndStatement(const QString &l) {
   line = l;
-  type = END;
+  statementType = END;
 }
 
 QString Statement::toString() const { return line; }
@@ -101,17 +101,36 @@ QString LetStatement::toTree() {
   return tree;
 }
 
+VariableType LetStatement::getType() const { return variableType; }
+
+QString LetStatement::getVal() const { return val; }
+
 void LetStatement::parse() {
   QString l = line;
   l = l.remove("LET").simplified();
+
   if (l.indexOf("=") == -1) throw QStringException("Invalid Statement");
   auto part = l.split("=");
   if (part.size() != 2) throw QStringException("Invalid Statement");
   variable = part[0].simplified();
-  exp = new Expression(part[1].simplified());
+
+  // string
+  int i = l.indexOf("\"");
+  if (i != -1) {
+    variableType = STR;
+    val = l.mid(i + 1, l.length() - i - 2);
+    if (val.indexOf("\"") != -1) throw QStringException("Invalid Statement");
+  }
+  // int
+  else {
+    variableType = INT;
+    exp = new Expression(part[1].simplified());
+  }
 }
 
-LetStatement::~LetStatement() { delete exp; }
+LetStatement::~LetStatement() {
+  if (variable == INT) delete exp;
+}
 
 QString InputStatement::toTree() {
   QString tree("INPUT =\n");
@@ -173,7 +192,7 @@ PrintStatement::~PrintStatement() { delete exp; }
 
 InvalidStatement::InvalidStatement(const QString &l) {
   line = l;
-  type = NONE;
+  statementType = NONE;
 }
 
 QString InvalidStatement::toTree() {

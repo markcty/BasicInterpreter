@@ -23,7 +23,8 @@ HEADERS += \
     expression.h \
     mainwindow.h \
     qstringexception.h \
-    statement.h
+    statement.h \
+    types.h
 
 FORMS += \
     mainwindow.ui

@@ -10,16 +10,18 @@ QString Environment::getStrValue(const QString &variable) const {
   return env[variable].strVal;
 }
 
-Environment::Type Environment::getType(const QString &variable) const {
+VariableType Environment::getType(const QString &variable) const {
   return env[variable].type;
 }
 
 void Environment::setValue(const QString &variable, int value) {
   env[variable].intVal = value;
+  env[variable].type = INT;
 }
 
 void Environment::setValue(const QString &variable, const QString &value) {
   env[variable].strVal = value;
+  env[variable].type = STR;
 }
 
 void Environment::clear() { env.clear(); }

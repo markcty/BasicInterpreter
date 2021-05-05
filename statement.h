@@ -7,10 +7,10 @@
 #include "basicinterpreter.h"
 #include "environment.h"
 #include "expression.h"
+#include "types.h"
 
 class Expression;
-
-enum StatementType { REM, LET, PRINT, INPUT, GOTO, IF, END, NONE };
+class Environment;
 
 /*
  * Class: Statement
@@ -19,7 +19,7 @@ enum StatementType { REM, LET, PRINT, INPUT, GOTO, IF, END, NONE };
  */
 class Statement {
  public:
-  StatementType type = NONE;
+  StatementType statementType = NONE;
   virtual QString toString() const;
   virtual QString getVariable();
   virtual int getConstant();
@@ -47,12 +47,16 @@ class LetStatement : public Statement {
  private:
   QString variable;
   Expression *exp;
+  QString val;
+  VariableType variableType;
 
  public:
   explicit LetStatement(QString l);
   QString getVariable() override;
   Expression *getFirstExp() override;
   QString toTree() override;
+  VariableType getType() const;
+  QString getVal() const;
   void parse() override;
   ~LetStatement();
 };

@@ -25,12 +25,14 @@ void BasicInterpreter::parseCmd(QString cmd) {
       delete immediateStatement;
     } else if (parts[0] == "LET") {
       mode = Immediate;
-      immediateStatement = new LetStatement(cmd);
-      immediateStatement->parse();
-      env->setValue(immediateStatement->getVariable(),
-                    immediateStatement->getFirstExp()->eval(*env));
+      auto let = new LetStatement(cmd);
+      let->parse();
+      if (let->getType() == STR)
+        env->setValue(let->getVariable(), let->getVal());
+      else
+        env->setValue(let->getVariable(), let->getFirstExp()->eval(*env));
       emit needPrintEnv(env->toString());
-      delete immediateStatement;
+      delete let;
     } else if (parts[0] == "INPUT") {
       mode = Immediate;
       immediateStatement = new InputStatement(cmd);
@@ -122,10 +124,14 @@ void BasicInterpreter::step() {
   };
 
   Statement *statement = env->currentLine.value();
-  switch (statement->type) {
+  switch (statement->statementType) {
     case LET: {
-      env->setValue(statement->getVariable(),
-                    statement->getFirstExp()->eval(*env));
+      auto *let = dynamic_cast<LetStatement *>(statement);
+      if (let->getType() == STR)
+        env->setValue(let->getVariable(), let->getVal());
+      else
+        env->setValue(statement->getVariable(),
+                      statement->getFirstExp()->eval(*env));
       env->currentLine++;
       shouldStep();
       emit needPrintEnv(env->toString());
