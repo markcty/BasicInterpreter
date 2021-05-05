@@ -135,7 +135,7 @@ int Expression::eval(const Environment &context) const {
 }
 
 int Expression::IdentifierNode::eval(const Environment &env) const {
-  return env.getValue(variable);
+  return env.getIntValue(variable);
 }
 
 Expression::IdentifierNode::IdentifierNode(const QString &token)

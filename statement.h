@@ -29,6 +29,7 @@ class Statement {
   virtual Expression *getSecondExp();
   virtual QString toTree() = 0;
   virtual ~Statement() = default;
+  virtual void parse() = 0;
 
  protected:
   QString line;
@@ -38,6 +39,7 @@ class RemStatement : public Statement {
  public:
   explicit RemStatement(const QString &l);
   QString toTree() override;
+  void parse() override;
   ~RemStatement() = default;
 };
 
@@ -51,6 +53,7 @@ class LetStatement : public Statement {
   QString getVariable() override;
   Expression *getFirstExp() override;
   QString toTree() override;
+  void parse() override;
   ~LetStatement();
 };
 
@@ -62,6 +65,7 @@ class PrintStatement : public Statement {
   explicit PrintStatement(QString l);
   Expression *getFirstExp() override;
   QString toTree() override;
+  void parse() override;
   ~PrintStatement();
 };
 
@@ -73,6 +77,7 @@ class InputStatement : public Statement {
   explicit InputStatement(QString l);
   QString getVariable() override;
   QString toTree() override;
+  void parse() override;
   ~InputStatement() = default;
 };
 
@@ -84,6 +89,7 @@ class GotoStatement : public Statement {
   explicit GotoStatement(QString l);
   int getLineNumber() override;
   QString toTree() override;
+  void parse() override;
   ~GotoStatement() = default;
 };
 
@@ -99,6 +105,7 @@ class IfStatement : public Statement {
   Expression *getSecondExp() override;
   QString getOperator() override;
   int getLineNumber() override;
+  void parse() override;
   QString toTree() override;
   ~IfStatement();
 };
@@ -107,7 +114,16 @@ class EndStatement : public Statement {
  public:
   explicit EndStatement(const QString &l);
   QString toTree() override;
+  void parse() override;
   ~EndStatement() = default;
+};
+
+class InvalidStatement : public Statement {
+ public:
+  explicit InvalidStatement(const QString &l);
+  QString toTree() override;
+  void parse() override;
+  ~InvalidStatement() = default;
 };
 
 #endif  // STATEMENT_H

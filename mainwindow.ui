@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1415</width>
-    <height>1459</height>
+    <width>806</width>
+    <height>899</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -111,6 +111,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="debugButton">
+        <property name="text">
+         <string>Debug/Step</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="clearButton">
         <property name="text">
          <string>Clear</string>
@@ -146,8 +153,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1415</width>
-     <height>39</height>
+     <width>806</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMinimal_Basic">

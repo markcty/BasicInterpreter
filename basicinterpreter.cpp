@@ -5,52 +5,59 @@ void BasicInterpreter::parseCmd(QString cmd) {
   bool isLineNumber = false;
   int index = parts[0].toInt(&isLineNumber);
   // part of a program
-  if (isLineNumber) {
-    if (parts.length() > 1)
-      insertLine(
-          index,
-          cmd.remove(cmd.indexOf(parts[0]), parts[0].length()).simplified());
-    else
-      removeLine(index);
+  try {
+    if (isLineNumber) {
+      if (parts.length() > 1)
+        insertLine(
+            index,
+            cmd.remove(cmd.indexOf(parts[0]), parts[0].length()).simplified());
+      else
+        removeLine(index);
+    }
+    // immediate statement
+    else if (parts[0] == "PRINT") {
+      mode = Immediate;
+      immediateStatement = new PrintStatement(cmd);
+      immediateStatement->parse();
+      emit needOutput(
+          QString::number(immediateStatement->getFirstExp()->eval(*env)));
+      delete immediateStatement;
+    } else if (parts[0] == "LET") {
+      mode = Immediate;
+      immediateStatement = new LetStatement(cmd);
+      immediateStatement->parse();
+      env->setValue(immediateStatement->getVariable(),
+                    immediateStatement->getFirstExp()->eval(*env));
+      delete immediateStatement;
+    } else if (parts[0] == "INPUT") {
+      mode = Immediate;
+      immediateStatement = new InputStatement(cmd);
+      immediateStatement->parse();
+      emit needInput();
+    }
+    // command
+    else if (parts[0] == "RUN") {
+      emit needClearScreen();
+      run();
+    } else if (parts[0] == "LOAD") {
+      emit needLoad();
+    } else if (parts[0] == "LIST") {
+      // no need to implement
+    } else if (parts[0] == "CLEAR") {
+      src.clear();
+      env->clear();
+      emit needClearScreen();
+    } else if (parts[0] == "QUIT") {
+      QApplication::quit();
+    } else if (parts[0] == "HELP") {
+      emit needOutput(
+          "Basic Interpreter implemented by markcty. Please read Basic-doc "
+          "before use");
+    } else
+      throw QStringException("Invalid Command!");
+  } catch (const QStringException &e) {
+    emit needErrorOutput(e.what());
   }
-  // immediate statement
-  else if (parts[0] == "PRINT") {
-    mode = Immediate;
-    immediateStatement = new PrintStatement(cmd);
-    emit needOutput(
-        QString::number(immediateStatement->getFirstExp()->eval(*env)));
-    delete immediateStatement;
-  } else if (parts[0] == "LET") {
-    mode = Immediate;
-    immediateStatement = new LetStatement(cmd);
-    env->setValue(immediateStatement->getVariable(),
-                  immediateStatement->getFirstExp()->eval(*env));
-    delete immediateStatement;
-  } else if (parts[0] == "INPUT") {
-    mode = Immediate;
-    immediateStatement = new InputStatement(cmd);
-    emit needInput();
-  }
-  // command
-  else if (parts[0] == "RUN") {
-    emit needClearScreen();
-    run();
-  } else if (parts[0] == "LOAD") {
-    emit needLoad();
-  } else if (parts[0] == "LIST") {
-    // no need to implement
-  } else if (parts[0] == "CLEAR") {
-    src.clear();
-    env->clear();
-    emit needClearScreen();
-  } else if (parts[0] == "QUIT") {
-    QApplication::quit();
-  } else if (parts[0] == "HELP") {
-    emit needOutput(
-        "Basic Interpreter implemented by markcty. Please read Basic-doc "
-        "before use");
-  } else
-    throw QStringException("Invalid Command!");
 }
 
 void BasicInterpreter::insertLine(int index, QString line) {
@@ -72,7 +79,7 @@ void BasicInterpreter::insertLine(int index, QString line) {
   else if (type == "END")
     statement = new EndStatement(line);
   else
-    throw QStringException("Invalid Statement");
+    statement = new InvalidStatement(line);
   src[index] = statement;
 }
 
@@ -93,10 +100,9 @@ BasicInterpreter::BasicInterpreter() : mode(Immediate), env(new Environment) {
 }
 
 void BasicInterpreter::step() {
-  if (env->currentLine == src.constEnd()) {
-    qDebug() << ("The program ends without an END statement");
-    return;
-  }
+  if (env->currentLine == src.constEnd())
+    throw QStringException("The program ends without an END statement");
+
   Statement *statement = env->currentLine.value();
   switch (statement->type) {
     case LET: {
@@ -168,6 +174,27 @@ void BasicInterpreter::setInput(int v) {
 
 void BasicInterpreter::run() {
   mode = Continuous;
+
+  // parse
+  QMapIterator<int, Statement *> line(src);
+  QList<QPair<int, QColor>> highlightLines;
+  int i = 0;
+  while (line.hasNext()) {
+    line.next();
+    try {
+      line.value()->parse();
+    } catch (const QStringException &e) {
+      QPair<int, QColor> pair{i, QColor(255, 0, 0)};
+      highlightLines.append(pair);
+    }
+    i++;
+  }
+  if (!highlightLines.empty()) {
+    emit needHighlight(highlightLines);
+    return;
+  }
+
+  // run
   env->currentLine = src.constBegin();
   QString tree;
   for (auto i = src.constBegin(); i != src.constEnd(); i++)

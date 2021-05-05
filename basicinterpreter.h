@@ -2,6 +2,7 @@
 #define BASICINTERPRETER_H
 
 #include <QApplication>
+#include <QColor>
 #include <QDebug>
 #include <QMap>
 #include <QObject>
@@ -72,6 +73,12 @@ class BasicInterpreter : public QObject {
 
   // require a clear of the screen
   void needClearScreen();
+
+  // require output error
+  void needErrorOutput(QString err);
+
+  // require highlight lines
+  void needHighlight(QList<QPair<int, QColor>> lines);
 
  public slots:
   // excute a statement

@@ -52,6 +52,39 @@ void MainWindow::newInterpreter() {
           &MainWindow::printExpTree);
   connect(interpreter, &BasicInterpreter::needClearScreen, this,
           &MainWindow::clearScreen);
+  connect(interpreter, &BasicInterpreter::needErrorOutput, this,
+          &MainWindow::notifyError);
+  connect(interpreter, &BasicInterpreter::needHighlight, this,
+          &MainWindow::HightLines);
+}
+
+void MainWindow::HightLines(QList<QPair<int, QColor>> lines) {
+  // clear highlights before
+  ui->source->setTextBackgroundColor(QColor(255, 255, 255));
+
+  // generate index for each line
+  int j = 0;
+  QString src = ui->source->toPlainText();
+  QVector<int> index;
+  index.push_back(0);
+  while ((j = src.indexOf('\n', j)) != -1) index.push_back(++j);
+
+  // hightlight
+  QList<QTextEdit::ExtraSelection> extras;
+  QTextCursor cursor(ui->source->document());
+  cursor.setCharFormat(QTextCharFormat());
+  for (auto &line : lines) {
+    QTextEdit::ExtraSelection h;
+    h.cursor = cursor;
+    h.cursor.setPosition(index[line.first]);
+    h.cursor.movePosition(QTextCursor::StartOfLine);
+    h.cursor.movePosition(QTextCursor::EndOfLine);
+    h.format.setProperty(QTextFormat::FullWidthSelection, true);
+    h.format.setBackground(line.second);
+    extras.append(h);
+  }
+
+  ui->source->setExtraSelections(extras);
 }
 
 void MainWindow::load() {
@@ -68,47 +101,33 @@ void MainWindow::load() {
   if (interpreter) delete interpreter;
   newInterpreter();
   clearScreen();
-  try {
-    while (!in.atEnd()) {
-      interpreter->parseCmd(in.readLine());
-    }
-  } catch (const QStringException &e) {
-    QMessageBox::warning(this, "Error", e.what());
-  }
+
+  while (!in.atEnd()) interpreter->parseCmd(in.readLine());
 
   file.close();
   ui->source->setText(interpreter->toString());
 }
 
-void MainWindow::clear() {
-  try {
-    interpreter->parseCmd("CLEAR");
-  } catch (const QStringException &e) {
-    QMessageBox::warning(this, "Error", e.what());
-  }
-}
+void MainWindow::clear() { interpreter->parseCmd("CLEAR"); }
 
 void MainWindow::clearScreen() {
   ui->cmd->clear();
   ui->output->clear();
   ui->expressionTree->clear();
   ui->source->setText(interpreter->toString());
+
+  QList<QTextEdit::ExtraSelection> extras;
+  ui->source->setExtraSelections(extras);
 }
 
-void MainWindow::execute() {
-  try {
-    interpreter->parseCmd("RUN");
-  } catch (const QStringException &e) {
-    QMessageBox::warning(this, "Error", e.what());
-  }
+void MainWindow::notifyError(QString err) {
+  QMessageBox::warning(this, "Error", err);
 }
+
+void MainWindow::execute() { interpreter->parseCmd("RUN"); }
 
 void MainWindow::getCMD() {
-  try {
-    interpreter->parseCmd(ui->cmd->text().simplified());
-  } catch (const QStringException &e) {
-    QMessageBox::warning(this, "Error", e.what());
-  }
+  interpreter->parseCmd(ui->cmd->text().simplified());
   ui->cmd->clear();
   ui->source->setText(interpreter->toString());
 }

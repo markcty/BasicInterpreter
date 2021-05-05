@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QColor>
 #include <QDebug>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -40,6 +41,9 @@ class MainWindow : public QMainWindow {
   // wrapper for create a new interpreter and connect all signals
   void newInterpreter();
 
+  // highlight lines
+  void HightLines(QList<QPair<int, QColor>> lines);
+
  public slots:
   // handler for load button
   void load();
@@ -64,5 +68,8 @@ class MainWindow : public QMainWindow {
 
   // clear screen
   void clearScreen();
+
+  // notify error
+  void notifyError(QString err);
 };
 #endif  // MAINWINDOW_H
