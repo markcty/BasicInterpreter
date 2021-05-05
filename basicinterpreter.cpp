@@ -115,6 +115,7 @@ void BasicInterpreter::step() {
       if (env->currentLine != src.constEnd()) {
         int offset = getLineOffset(env->currentLine.key());
         lines.append(QPair<int, QColor>{offset, QColor(124, 252, 0)});
+        emit needPrintExpTree(env->currentLine.value()->toString());
       }
       emit needHighlight(lines);
     }
@@ -211,6 +212,7 @@ void BasicInterpreter::debug() {
       int offset = getLineOffset(env->currentLine.key());
       lines.append(QPair<int, QColor>{offset, QColor(124, 252, 0)});
       emit needHighlight(lines);
+      emit needClearScreen();
     } else
       emit nextStep();
   } catch (const QStringException &err) {
