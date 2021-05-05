@@ -23,3 +23,14 @@ void Environment::setValue(const QString &variable, const QString &value) {
 }
 
 void Environment::clear() { env.clear(); }
+
+QString Environment::toString() const {
+  QString s;
+  for (auto i = env.constBegin(); i != env.constEnd(); i++) {
+    if (i.value().type == INT)
+      s += i.key() + ": INT = " + QString::number(i.value().intVal);
+    if (i.value().type == STR) s += i.key() + ": STR = " + i.value().strVal;
+    s += "\n";
+  }
+  return s;
+}

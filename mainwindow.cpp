@@ -56,6 +56,10 @@ void MainWindow::newInterpreter() {
           &MainWindow::notifyError);
   connect(interpreter, &BasicInterpreter::needHighlight, this,
           &MainWindow::HightLines);
+  connect(ui->debugButton, &QPushButton::clicked, interpreter,
+          &BasicInterpreter::debug);
+  connect(interpreter, &BasicInterpreter::needPrintEnv, this,
+          &MainWindow::printEnv);
 }
 
 void MainWindow::HightLines(QList<QPair<int, QColor>> lines) {
@@ -105,7 +109,7 @@ void MainWindow::load() {
   while (!in.atEnd()) interpreter->parseCmd(in.readLine());
 
   file.close();
-  ui->source->setText(interpreter->toString());
+  ui->source->setText(interpreter->getSource());
 }
 
 void MainWindow::clear() { interpreter->parseCmd("CLEAR"); }
@@ -114,7 +118,7 @@ void MainWindow::clearScreen() {
   ui->cmd->clear();
   ui->output->clear();
   ui->expressionTree->clear();
-  ui->source->setText(interpreter->toString());
+  ui->source->setText(interpreter->getSource());
 
   QList<QTextEdit::ExtraSelection> extras;
   ui->source->setExtraSelections(extras);
@@ -129,7 +133,7 @@ void MainWindow::execute() { interpreter->parseCmd("RUN"); }
 void MainWindow::getCMD() {
   interpreter->parseCmd(ui->cmd->text().simplified());
   ui->cmd->clear();
-  ui->source->setText(interpreter->toString());
+  ui->source->setText(interpreter->getSource());
 }
 
 void MainWindow::getInput() {
@@ -141,6 +145,7 @@ void MainWindow::getInput() {
 void MainWindow::print(QString output) { ui->output->append(output); }
 
 void MainWindow::printExpTree(QString output) {
-  ui->expressionTree->clear();
   ui->expressionTree->setText(output);
 }
+
+void MainWindow::printEnv(QString output) { ui->environment->setText(output); }

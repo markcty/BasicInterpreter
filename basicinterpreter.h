@@ -25,8 +25,10 @@ class BasicInterpreter : public QObject {
   Q_OBJECT
  private:
   // current execute mode is immediate(input without a line number)
-  // or continuous(when running a program)
-  enum Mode { Immediate, Continuous } mode;
+  // or Run
+  // or Debug
+  // or Normal
+  enum Mode { Immediate, Run, Debug, Normal } mode;
 
   // sources
   QMap<int, Statement *> src;
@@ -46,14 +48,20 @@ class BasicInterpreter : public QObject {
   // run the program
   void run();
 
+  // get the line offset of statement with key as its line number
+  int getLineOffset(int key) const;
+
+  // parse sources, return true if no error, false otherwise
+  bool parseSrc();
+
  public:
   BasicInterpreter();
 
   // The only interface: parse a command and call corresponding function
   void parseCmd(QString cmd);
 
-  // return the whole program
-  QString toString() const;
+  // return source
+  QString getSource() const;
 
  signals:
   // require a step
@@ -74,6 +82,9 @@ class BasicInterpreter : public QObject {
   // require a clear of the screen
   void needClearScreen();
 
+  // require printing environment
+  void needPrintEnv(QString output);
+
   // require output error
   void needErrorOutput(QString err);
 
@@ -86,6 +97,9 @@ class BasicInterpreter : public QObject {
 
   // set the variable(can only be used in INPUT statement)
   void setInput(int v);
+
+  // start debug or step
+  void debug();
 };
 
 #endif  // BASICINTERPRETER_H

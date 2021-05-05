@@ -66,6 +66,9 @@ class MainWindow : public QMainWindow {
   // print a exp tree to expression tree window
   void printExpTree(QString output);
 
+  // print environment
+  void printEnv(QString output);
+
   // clear screen
   void clearScreen();
 

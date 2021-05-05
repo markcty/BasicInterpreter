@@ -37,12 +37,16 @@ class Environment {
   int getIntValue(const QString &variable) const;
   QString getStrValue(const QString &variable) const;
   Type getType(const QString &variable) const;
+
   // set the value of a variable
   void setValue(const QString &variable, int value);
   void setValue(const QString &variable, const QString &value);
 
   // clear the environment
   void clear();
+
+  // return string representation
+  QString toString() const;
 };
 
 #endif  // ENVIRONMENT_H
