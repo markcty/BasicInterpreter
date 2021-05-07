@@ -87,14 +87,16 @@ Expression *Statement::getFirstExp() { return nullptr; }
 Expression *Statement::getSecondExp() { return nullptr; }
 
 QString RemStatement::toTree() {
+  if (statementType == ERR) return "ERR";
   QString tree("REM\n");
-  tree.append("    " + line.midRef(line.indexOf(" ") + 1) + "\n");
+  tree.append("    " + line.mid(line.indexOf(" ") + 1) + "\n");
   return tree;
 }
 
 void RemStatement::parse() {}
 
 QString LetStatement::toTree() {
+  if (statementType == ERR) return "ERR";
   QString tree("LET =\n");
   tree.append("    " + variable + '\n');
   tree.append(exp->toTree() + '\n');
@@ -129,10 +131,11 @@ void LetStatement::parse() {
 }
 
 LetStatement::~LetStatement() {
-  if (variable == INT) delete exp;
+  if (variableType == INT) delete exp;
 }
 
 QString InputStatement::toTree() {
+  if (statementType == ERR) return "ERR";
   QString tree("INPUT =\n");
   tree.append("    " + variable + '\n');
   return tree;
@@ -145,6 +148,7 @@ void InputStatement::parse() {
 }
 
 QString GotoStatement::toTree() {
+  if (statementType == ERR) return "ERR";
   QString tree("GOTO\n");
   tree.append("    " + QString::number(lineNumber) + '\n');
   return tree;
@@ -159,6 +163,7 @@ void GotoStatement::parse() {
 }
 
 QString IfStatement::toTree() {
+  if (statementType == ERR) return "ERR";
   QString tree("IF THEN\n");
   tree.append(exp1->toTree() + '\n');
   tree.append("    " + op + '\n');
@@ -172,11 +177,15 @@ IfStatement::~IfStatement() {
   delete exp2;
 }
 
-QString EndStatement::toTree() { return "END"; }
+QString EndStatement::toTree() {
+  if (statementType == ERR) return "ERR";
+  return "END";
+}
 
 void EndStatement::parse() {}
 
 QString PrintStatement::toTree() {
+  if (statementType == ERR) return "ERR";
   QString tree("PRINT\n");
   tree.append(exp->toTree() + '\n');
   return tree;
@@ -192,10 +201,11 @@ PrintStatement::~PrintStatement() { delete exp; }
 
 InvalidStatement::InvalidStatement(const QString &l) {
   line = l;
-  statementType = NONE;
+  statementType = ERR;
 }
 
 QString InvalidStatement::toTree() {
+  if (statementType == ERR) return "ERR";
   throw QStringException("Can't call toTree of an invalid statement");
 }
 

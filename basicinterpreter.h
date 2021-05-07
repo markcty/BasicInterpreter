@@ -9,6 +9,7 @@
 #include <QString>
 #include <QStringList>
 
+#include "declarations.h"
 #include "environment.h"
 #include "expression.h"
 #include "statement.h"
@@ -24,11 +25,15 @@
 class BasicInterpreter : public QObject {
   Q_OBJECT
  private:
-  // current execute mode is immediate(input without a line number)
+  // current execute mode is
+  // immediate(input without a line number)
   // or Run
   // or Debug
   // or Normal
   enum Mode { Immediate, Run, Debug, Normal } mode;
+
+  // error lines that need to be highlighted
+  QList<QPair<int, QColor>> errLines;
 
   // sources
   QMap<int, Statement *> src;
@@ -52,7 +57,7 @@ class BasicInterpreter : public QObject {
   int getLineOffset(int key) const;
 
   // parse sources, return true if no error, false otherwise
-  bool parseSrc();
+  void parseSrc();
 
  public:
   BasicInterpreter();

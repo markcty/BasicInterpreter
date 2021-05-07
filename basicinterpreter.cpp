@@ -2,7 +2,7 @@
 
 void BasicInterpreter::parseCmd(QString cmd) {
   if (cmd.isEmpty()) return;
-  auto parts = cmd.split(" ", QString::SkipEmptyParts);
+  auto parts = cmd.split(" ", Qt::SkipEmptyParts);
   bool isLineNumber = false;
   int index = parts[0].toInt(&isLineNumber);
   try {
@@ -109,6 +109,11 @@ void BasicInterpreter::step() {
     throw QStringException("The program ends without an END statement");
   }
 
+  if (env->currentLine.value()->statementType == ERR) {
+    mode = Normal;
+    throw QStringException("The program ends because of a corrupted statement");
+  }
+
   auto shouldStep = [&]() {
     if (mode == Run)
       emit nextStep();
@@ -119,6 +124,7 @@ void BasicInterpreter::step() {
         lines.append(QPair<int, QColor>{offset, QColor(124, 252, 0)});
         emit needPrintExpTree(env->currentLine.value()->toString());
       }
+      lines.append(errLines);
       emit needHighlight(lines);
     }
   };
@@ -178,6 +184,7 @@ void BasicInterpreter::step() {
       env->currentLine = src.constEnd();
       mode = Normal;
       QList<QPair<int, QColor>> lines;
+      lines.append(errLines);
       emit needHighlight(lines);
       break;
     }
@@ -202,6 +209,7 @@ void BasicInterpreter::setInput(int v) {
       QList<QPair<int, QColor>> lines;
       int offset = getLineOffset(env->currentLine.key());
       lines.append(QPair<int, QColor>{offset, QColor(124, 252, 0)});
+      lines.append(errLines);
       emit needHighlight(lines);
     }
   }
@@ -211,12 +219,13 @@ void BasicInterpreter::setInput(int v) {
 void BasicInterpreter::debug() {
   try {
     if (mode != Debug) {
-      if (!parseSrc()) return;
+      parseSrc();
       mode = Debug;
       env->currentLine = src.constBegin();
       QList<QPair<int, QColor>> lines;
       int offset = getLineOffset(env->currentLine.key());
       lines.append(QPair<int, QColor>{offset, QColor(124, 252, 0)});
+      lines.append(errLines);
       emit needHighlight(lines);
       emit needClearScreen();
     } else
@@ -225,13 +234,14 @@ void BasicInterpreter::debug() {
     emit needErrorOutput(err.what());
     mode = Normal;
     QList<QPair<int, QColor>> lines;
+    lines.append(errLines);
     emit needHighlight(lines);
   }
 }
 
 void BasicInterpreter::run() {
   // parse
-  if (!parseSrc()) return;
+  parseSrc();
   // run
   mode = Run;
   env->currentLine = src.constBegin();
@@ -247,23 +257,20 @@ int BasicInterpreter::getLineOffset(int key) const {
   return keys.indexOf(key);
 }
 
-bool BasicInterpreter::parseSrc() {
+void BasicInterpreter::parseSrc() {
   QMapIterator<int, Statement *> line(src);
-  QList<QPair<int, QColor>> highlightLines;
   int i = 0;
+  errLines.clear();
   while (line.hasNext()) {
     line.next();
     try {
       line.value()->parse();
     } catch (const QStringException &e) {
+      line.value()->statementType = ERR;
       QPair<int, QColor> pair{i, QColor(255, 0, 0)};
-      highlightLines.append(pair);
+      errLines.append(pair);
     }
     i++;
   }
-  if (!highlightLines.empty()) {
-    emit needHighlight(highlightLines);
-    return false;
-  }
-  return true;
+  if (!errLines.empty()) emit needHighlight(errLines);
 }

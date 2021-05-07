@@ -19,12 +19,12 @@ SOURCES += \
 
 HEADERS += \
     basicinterpreter.h \
+    declarations.h \
     environment.h \
     expression.h \
     mainwindow.h \
     qstringexception.h \
-    statement.h \
-    types.h
+    statement.h
 
 FORMS += \
     mainwindow.ui

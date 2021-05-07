@@ -12,8 +12,7 @@
 #include "environment.h"
 #include "qstringexception.h"
 #include "statement.h"
-
-class Environment;
+#include "declarations.h"
 
 /*
  * Class: Expression

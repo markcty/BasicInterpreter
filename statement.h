@@ -5,12 +5,9 @@
 #include <QStringList>
 
 #include "basicinterpreter.h"
+#include "declarations.h"
 #include "environment.h"
 #include "expression.h"
-#include "types.h"
-
-class Expression;
-class Environment;
 
 /*
  * Class: Statement
@@ -19,7 +16,7 @@ class Environment;
  */
 class Statement {
  public:
-  StatementType statementType = NONE;
+  StatementType statementType = ERR;
   virtual QString toString() const;
   virtual QString getVariable();
   virtual int getConstant();

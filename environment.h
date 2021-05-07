@@ -7,9 +7,7 @@
 #include "basicinterpreter.h"
 #include "expression.h"
 #include "statement.h"
-#include "types.h"
-
-class Statement;
+#include "declarations.h"
 
 /*
  * Class: Environment
