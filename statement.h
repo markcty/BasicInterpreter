@@ -127,4 +127,17 @@ class InvalidStatement : public Statement {
   ~InvalidStatement() = default;
 };
 
+class PrintfStatement : public Statement {
+ private:
+  QString format;
+  QStringList args;
+
+ public:
+  explicit PrintfStatement(const QString &l);
+  QString toTree() override;
+  void parse() override;
+  QString compose(const Environment &env);
+  ~PrintfStatement() = default;
+};
+
 #endif  // STATEMENT_H

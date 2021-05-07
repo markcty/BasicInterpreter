@@ -24,49 +24,24 @@
  */
 class BasicInterpreter : public QObject {
   Q_OBJECT
- private:
-  // current execute mode is
-  // immediate(input without a line number)
-  // or Run
-  // or Debug
-  // or Normal
-  enum Mode { Immediate, Run, Debug, Normal } mode;
-
-  // error lines that need to be highlighted
-  QList<QPair<int, QColor>> errLines;
-
-  // sources
-  QMap<int, Statement *> src;
-
-  // runtime environment
-  Environment *env;
-
-  // current immediate statement
-  Statement *immediateStatement;
-
-  // insert a line
-  void insertLine(int index, QString line);
-
-  // remove a line
-  void removeLine(int index);
-
-  // run the program
-  void run();
-
-  // get the line offset of statement with key as its line number
-  int getLineOffset(int key) const;
-
-  // parse sources, return true if no error, false otherwise
-  void parseSrc();
-
+  Q_PROPERTY(Mode mode READ getMode WRITE setMode NOTIFY modeChanged)
  public:
-  BasicInterpreter();
+  enum Mode { Immediate, Run, Debug, Normal };
+  Q_ENUM(Mode);
+
+  BasicInterpreter(QObject *parent = nullptr);
 
   // The only interface: parse a command and call corresponding function
   void parseCmd(QString cmd);
 
   // return source
   QString getSource() const;
+
+  // setMode
+  void setMode(Mode m);
+
+  // getMode
+  Mode getMode();
 
  signals:
   // require a step
@@ -96,6 +71,9 @@ class BasicInterpreter : public QObject {
   // require highlight lines
   void needHighlight(QList<QPair<int, QColor>> lines);
 
+  // mode changed
+  void modeChanged(Mode mode);
+
  public slots:
   // excute a statement
   void step();
@@ -105,6 +83,37 @@ class BasicInterpreter : public QObject {
 
   // start debug or step
   void debug();
+
+ private:
+  // Mode
+  Mode m_mode;
+
+  // error lines that need to be highlighted
+  QList<QPair<int, QColor>> errLines;
+
+  // sources
+  QMap<int, Statement *> src;
+
+  // runtime environment
+  Environment *env;
+
+  // current immediate statement
+  Statement *immediateStatement;
+
+  // insert a line
+  void insertLine(int index, QString line);
+
+  // remove a line
+  void removeLine(int index);
+
+  // run the program
+  void run();
+
+  // get the line offset of statement with key as its line number
+  int getLineOffset(int key) const;
+
+  // parse sources, return true if no error, false otherwise
+  void parseSrc();
 };
 
 #endif  // BASICINTERPRETER_H

@@ -60,12 +60,11 @@ void MainWindow::newInterpreter() {
           &BasicInterpreter::debug);
   connect(interpreter, &BasicInterpreter::needPrintEnv, this,
           &MainWindow::printEnv);
+  connect(interpreter, &BasicInterpreter::modeChanged, this,
+          &MainWindow::detectMode);
 }
 
 void MainWindow::HightLines(QList<QPair<int, QColor>> lines) {
-  // clear highlights before
-  ui->source->setTextBackgroundColor(QColor(255, 255, 255));
-
   // generate index for each line
   int j = 0;
   QString src = ui->source->toPlainText();
@@ -118,6 +117,7 @@ void MainWindow::clearScreen() {
   ui->cmd->clear();
   ui->output->clear();
   ui->expressionTree->clear();
+  ui->environment->clear();
   ui->source->setText(interpreter->getSource());
 
   QList<QTextEdit::ExtraSelection> extras;
@@ -126,6 +126,37 @@ void MainWindow::clearScreen() {
 
 void MainWindow::notifyError(QString err) {
   QMessageBox::warning(this, "Error", err);
+}
+
+void MainWindow::detectMode(BasicInterpreter::Mode mode) {
+  switch (mode) {
+    case BasicInterpreter::Debug:
+      ui->cmd->setDisabled(true);
+      ui->clearButton->setDisabled(true);
+      ui->loadButton->setDisabled(true);
+      break;
+    case BasicInterpreter::Immediate:
+      ui->cmd->setDisabled(true);
+      ui->debugButton->setDisabled(true);
+      ui->excuteButton->setDisabled(true);
+      ui->clearButton->setDisabled(true);
+      ui->loadButton->setDisabled(true);
+      break;
+    case BasicInterpreter::Normal:
+      ui->cmd->setDisabled(false);
+      ui->debugButton->setDisabled(false);
+      ui->excuteButton->setDisabled(false);
+      ui->clearButton->setDisabled(false);
+      ui->loadButton->setDisabled(false);
+      break;
+    case BasicInterpreter::Run:
+      ui->cmd->setDisabled(true);
+      ui->debugButton->setDisabled(true);
+      ui->excuteButton->setDisabled(true);
+      ui->clearButton->setDisabled(true);
+      ui->loadButton->setDisabled(true);
+      break;
+  }
 }
 
 void MainWindow::execute() { interpreter->parseCmd("RUN"); }

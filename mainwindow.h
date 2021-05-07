@@ -74,5 +74,8 @@ class MainWindow : public QMainWindow {
 
   // notify error
   void notifyError(QString err);
+
+  // detect intepreter mode
+  void detectMode(BasicInterpreter::Mode mode);
 };
 #endif  // MAINWINDOW_H

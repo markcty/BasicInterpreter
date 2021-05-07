@@ -97,6 +97,7 @@ void RemStatement::parse() {}
 
 QString LetStatement::toTree() {
   if (statementType == ERR) return "ERR";
+  if (variableType == STR) return "LET = \"" + val + "\"\n";
   QString tree("LET =\n");
   tree.append("    " + variable + '\n');
   tree.append(exp->toTree() + '\n');
@@ -117,11 +118,21 @@ void LetStatement::parse() {
   variable = part[0].simplified();
 
   // string
-  int i = l.indexOf("\"");
-  if (i != -1) {
+
+  if (l.indexOf("\"") != -1) {
+    int i = l.indexOf("\"");
+    if (l.back() != '\"') throw QStringException("Invalid Statement");
     variableType = STR;
     val = l.mid(i + 1, l.length() - i - 2);
-    if (val.indexOf("\"") != -1) throw QStringException("Invalid Statement");
+    if (val.indexOf("\"") != -1 || val.indexOf("'") != -1)
+      throw QStringException("Invalid Statement");
+  } else if (l.indexOf("'") != -1) {
+    int i = l.indexOf("'");
+    if (l.back() != '\'') throw QStringException("Invalid Statement");
+    variableType = STR;
+    val = l.mid(i + 1, l.length() - i - 2);
+    if (val.indexOf("\"") != -1 || val.indexOf("'") != -1)
+      throw QStringException("Invalid Statement");
   }
   // int
   else {
@@ -210,3 +221,75 @@ QString InvalidStatement::toTree() {
 }
 
 void InvalidStatement::parse() { throw QStringException("Invalid Statement"); }
+
+PrintfStatement::PrintfStatement(const QString &l) {
+  line = l;
+  statementType = PRINTF;
+}
+
+QString PrintfStatement::toTree() {
+  if (statementType == ERR) return "ERR";
+  QString tree("PRINTF\n");
+  tree.append("    " + line.mid(line.indexOf(" ") + 1) + "\n");
+  return tree;
+}
+
+void PrintfStatement::parse() {
+  auto l = line;
+  l.remove("PRINTF ");
+  auto part = l.split(",");
+  format = part[0];
+  if (!((format.front() == '"' && format.back() == '"') ||
+        (format.front() == '\'' && format.back() == '\'')))
+    throw QStringException("Invalid Statement");
+  format = format.mid(1, format.length() - 2);
+  if (format.indexOf('"') != -1 || format.indexOf('\'') != -1)
+    throw QStringException("Invalid Statement");
+
+  int count = 0, j = 0;
+  while ((j = format.indexOf("{}", j)) != -1) {
+    count++;
+    j++;
+  }
+  if (part.size() - 1 != count) throw QStringException("Invalid Statement");
+  for (int i = 1; i < part.size(); i++) args.push_back(part[i]);
+}
+
+QString PrintfStatement::compose(const Environment &env) {
+  auto extractStr = [](QString s) {
+    if (!((s.front() == '"' && s.back() == '"') ||
+          (s.front() == '\'' && s.back() == '\'')))
+      throw QStringException("Invalid Statement");
+    s = s.mid(1, s.length() - 2);
+    if (s.indexOf('"') != -1 || s.indexOf('\'') != -1)
+      throw QStringException("Invalid Statement");
+    return s;
+  };
+
+  QString s = format;
+  for (auto &arg : args) {
+    QString args;
+    if (arg.front() == '\'' || arg.front() == '"') {
+      args = extractStr(arg);
+    } else if (arg.front().isDigit()) {
+      bool ok = true;
+      arg.toInt(&ok);
+      if (!ok) throw QStringException("compose error");
+      args = arg;
+    } else {
+      switch (env.getType(arg)) {
+        case STR:
+          args = env.getStrValue(arg);
+          break;
+        case INT:
+          args = QString::number(env.getIntValue(arg));
+          break;
+      }
+    }
+    int i = s.indexOf("{}");
+    s.remove(i, 2);
+    s.insert(i, args);
+  }
+
+  return s;
+}

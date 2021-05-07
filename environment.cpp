@@ -31,7 +31,8 @@ QString Environment::toString() const {
   for (auto i = env.constBegin(); i != env.constEnd(); i++) {
     if (i.value().type == INT)
       s += i.key() + ": INT = " + QString::number(i.value().intVal);
-    if (i.value().type == STR) s += i.key() + ": STR = " + i.value().strVal;
+    if (i.value().type == STR)
+      s += i.key() + ": STR = \"" + i.value().strVal + "\"";
     s += "\n";
   }
   return s;

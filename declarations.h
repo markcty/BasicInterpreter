@@ -3,7 +3,7 @@
 
 enum VariableType { INT, STR };
 
-enum StatementType { REM, LET, PRINT, INPUT, GOTO, IF, END, ERR };
+enum StatementType { REM, LET, PRINT, PRINTF, INPUT, GOTO, IF, END, ERR };
 
 class BasicInterpreter;
 

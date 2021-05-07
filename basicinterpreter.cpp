@@ -17,14 +17,15 @@ void BasicInterpreter::parseCmd(QString cmd) {
     }
     // immediate statement
     else if (parts[0] == "PRINT") {
-      mode = Immediate;
+      setMode(Immediate);
       immediateStatement = new PrintStatement(cmd);
       immediateStatement->parse();
       emit needOutput(
           QString::number(immediateStatement->getFirstExp()->eval(*env)));
       delete immediateStatement;
+      setMode(Normal);
     } else if (parts[0] == "LET") {
-      mode = Immediate;
+      setMode(Immediate);
       auto let = new LetStatement(cmd);
       let->parse();
       if (let->getType() == STR)
@@ -33,8 +34,9 @@ void BasicInterpreter::parseCmd(QString cmd) {
         env->setValue(let->getVariable(), let->getFirstExp()->eval(*env));
       emit needPrintEnv(env->toString());
       delete let;
+      setMode(Normal);
     } else if (parts[0] == "INPUT") {
-      mode = Immediate;
+      setMode(Immediate);
       immediateStatement = new InputStatement(cmd);
       immediateStatement->parse();
       emit needInput();
@@ -50,6 +52,7 @@ void BasicInterpreter::parseCmd(QString cmd) {
     } else if (parts[0] == "CLEAR") {
       src.clear();
       env->clear();
+      errLines.clear();
       emit needClearScreen();
     } else if (parts[0] == "QUIT") {
       QApplication::quit();
@@ -60,6 +63,7 @@ void BasicInterpreter::parseCmd(QString cmd) {
     } else
       throw QStringException("Invalid Command!");
   } catch (const QStringException &e) {
+    setMode(Normal);
     emit needErrorOutput(e.what());
   }
 }
@@ -82,6 +86,8 @@ void BasicInterpreter::insertLine(int index, QString line) {
     statement = new IfStatement(line);
   else if (type == "END")
     statement = new EndStatement(line);
+  else if (type == "PRINTF")
+    statement = new PrintfStatement(line);
   else
     statement = new InvalidStatement(line);
   src[index] = statement;
@@ -99,23 +105,27 @@ QString BasicInterpreter::getSource() const {
   return lines.join("\n");
 }
 
-BasicInterpreter::BasicInterpreter() : mode(Normal), env(new Environment) {
+BasicInterpreter::BasicInterpreter(QObject *parent)
+    : QObject(parent), env(new Environment) {
   connect(this, &BasicInterpreter::nextStep, this, &BasicInterpreter::step);
+  setMode(Normal);
 }
 
 void BasicInterpreter::step() {
   if (env->currentLine == src.constEnd()) {
-    mode = Normal;
+    setMode(Normal);
+    env->clear();
     throw QStringException("The program ends without an END statement");
   }
 
   if (env->currentLine.value()->statementType == ERR) {
-    mode = Normal;
+    setMode(Normal);
+    env->clear();
     throw QStringException("The program ends because of a corrupted statement");
   }
 
   auto shouldStep = [&]() {
-    if (mode == Run)
+    if (getMode() == Run)
       emit nextStep();
     else {
       QList<QPair<int, QColor>> lines;
@@ -139,8 +149,8 @@ void BasicInterpreter::step() {
         env->setValue(statement->getVariable(),
                       statement->getFirstExp()->eval(*env));
       env->currentLine++;
-      shouldStep();
       emit needPrintEnv(env->toString());
+      shouldStep();
       break;
     }
     case GOTO: {
@@ -180,12 +190,22 @@ void BasicInterpreter::step() {
       shouldStep();
       break;
     }
+    case PRINTF: {
+      auto st = dynamic_cast<PrintfStatement *>(statement);
+      emit needOutput(st->compose(*env));
+      env->currentLine++;
+      shouldStep();
+      break;
+    }
     case END: {
       env->currentLine = src.constEnd();
-      mode = Normal;
+      setMode(Normal);
       QList<QPair<int, QColor>> lines;
       lines.append(errLines);
       emit needHighlight(lines);
+      emit needPrintEnv(env->toString());
+      emit needErrorOutput("The program ends normally");
+      env->clear();
       break;
     }
     default:
@@ -196,14 +216,15 @@ void BasicInterpreter::step() {
 }
 
 void BasicInterpreter::setInput(int v) {
-  if (mode == Immediate) {
+  if (getMode() == Immediate) {
     env->setValue(immediateStatement->getVariable(), v);
     delete immediateStatement;
+    setMode(Normal);
   } else {
     auto currentStatement = env->currentLine.value();
     env->setValue(currentStatement->getVariable(), v);
     env->currentLine++;
-    if (mode == Run)
+    if (getMode() == Run)
       emit nextStep();
     else {
       QList<QPair<int, QColor>> lines;
@@ -218,33 +239,45 @@ void BasicInterpreter::setInput(int v) {
 
 void BasicInterpreter::debug() {
   try {
-    if (mode != Debug) {
+    if (getMode() != Debug && !src.empty()) {
+      emit needClearScreen();
       parseSrc();
-      mode = Debug;
+      setMode(Debug);
       env->currentLine = src.constBegin();
       QList<QPair<int, QColor>> lines;
       int offset = getLineOffset(env->currentLine.key());
       lines.append(QPair<int, QColor>{offset, QColor(124, 252, 0)});
       lines.append(errLines);
       emit needHighlight(lines);
-      emit needClearScreen();
+      emit needPrintExpTree(env->currentLine.value()->toTree());
     } else
       emit nextStep();
   } catch (const QStringException &err) {
     emit needErrorOutput(err.what());
-    mode = Normal;
+    setMode(Normal);
     QList<QPair<int, QColor>> lines;
     lines.append(errLines);
     emit needHighlight(lines);
   }
 }
 
+void BasicInterpreter::setMode(Mode m) {
+  m_mode = m;
+  emit modeChanged(m_mode);
+}
+
+BasicInterpreter::Mode BasicInterpreter::getMode() { return m_mode; }
+
 void BasicInterpreter::run() {
-  // parse
-  parseSrc();
-  // run
-  mode = Run;
-  env->currentLine = src.constBegin();
+  if (src.empty()) return;
+
+  auto prev_mode = getMode();
+  setMode(Run);
+  if (prev_mode != Debug) {
+    env->currentLine = src.constBegin();
+    parseSrc();
+  }
+
   QString tree;
   for (auto i = src.constBegin(); i != src.constEnd(); i++)
     tree.push_back(QString::number(i.key()) + " " + i.value()->toTree());
