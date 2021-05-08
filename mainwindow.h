@@ -77,5 +77,8 @@ class MainWindow : public QMainWindow {
 
   // detect intepreter mode
   void detectMode(BasicInterpreter::Mode mode);
+
+  // update source
+  void updateSource();
 };
 #endif  // MAINWINDOW_H

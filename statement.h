@@ -30,6 +30,7 @@ class Statement {
 
  protected:
   QString line;
+  static bool validifyVar(QString var);
 };
 
 class RemStatement : public Statement {
@@ -138,6 +139,18 @@ class PrintfStatement : public Statement {
   void parse() override;
   QString compose(const Environment &env);
   ~PrintfStatement() = default;
+};
+
+class InputsStatement : public Statement {
+ private:
+  QString variable;
+
+ public:
+  explicit InputsStatement(QString l);
+  QString getVariable() override;
+  QString toTree() override;
+  void parse() override;
+  ~InputsStatement() = default;
 };
 
 #endif  // STATEMENT_H

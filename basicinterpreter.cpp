@@ -14,6 +14,7 @@ void BasicInterpreter::parseCmd(QString cmd) {
             cmd.remove(cmd.indexOf(parts[0]), parts[0].length()).simplified());
       else
         removeLine(index);
+      emit sourceChanged();
     }
     // immediate statement
     else if (parts[0] == "PRINT") {
@@ -40,6 +41,17 @@ void BasicInterpreter::parseCmd(QString cmd) {
       immediateStatement = new InputStatement(cmd);
       immediateStatement->parse();
       emit needInput();
+    } else if (parts[0] == "INPUTS") {
+      setMode(Immediate);
+      immediateStatement = new InputsStatement(cmd);
+      immediateStatement->parse();
+      emit needInput();
+    } else if (parts[0] == "PRINTF") {
+      setMode(Immediate);
+      PrintfStatement *s = new PrintfStatement(cmd);
+      s->parse();
+      emit needOutput(s->compose(*env));
+      setMode(Normal);
     }
     // command
     else if (parts[0] == "RUN") {
@@ -64,7 +76,7 @@ void BasicInterpreter::parseCmd(QString cmd) {
       throw QStringException("Invalid Command!");
   } catch (const QStringException &e) {
     setMode(Normal);
-    emit needErrorOutput(e.what());
+    emit needPopUp(e.what());
   }
 }
 
@@ -80,6 +92,8 @@ void BasicInterpreter::insertLine(int index, QString line) {
     statement = new PrintStatement(line);
   else if (type == "INPUT")
     statement = new InputStatement(line);
+  else if (type == "INPUTS")
+    statement = new InputsStatement(line);
   else if (type == "GOTO")
     statement = new GotoStatement(line);
   else if (type == "IF")
@@ -178,9 +192,13 @@ void BasicInterpreter::step() {
       shouldStep();
       break;
     }
+    // the input statement is a special case because it requires
+    // asynchronous treatment
     case INPUT: {
-      // the input statement is a special case because it requires
-      // asynchronous treatment
+      emit needInput();
+      break;
+    }
+    case INPUTS: {
       emit needInput();
       break;
     }
@@ -204,7 +222,7 @@ void BasicInterpreter::step() {
       lines.append(errLines);
       emit needHighlight(lines);
       emit needPrintEnv(env->toString());
-      emit needErrorOutput("The program ends normally");
+      emit needPopUp("The program ends normally");
       env->clear();
       break;
     }
@@ -215,17 +233,34 @@ void BasicInterpreter::step() {
   }
 }
 
-void BasicInterpreter::setInput(int v) {
+void BasicInterpreter::setInput(QString input) {
+  auto currentStatement =
+      getMode() == Immediate ? immediateStatement : env->currentLine.value();
+
+  if (currentStatement->statementType == INPUT) {
+    bool ok;
+    env->setValue(currentStatement->getVariable(), input.toInt(&ok));
+    if (!ok) {
+      emit needPopUp("Input invalid");
+      emit needInput();
+      return;
+    }
+  } else
+    env->setValue(currentStatement->getVariable(), input);
+
+  emit needPrintEnv(env->toString());
+
   if (getMode() == Immediate) {
-    env->setValue(immediateStatement->getVariable(), v);
     delete immediateStatement;
     setMode(Normal);
   } else {
-    auto currentStatement = env->currentLine.value();
-    env->setValue(currentStatement->getVariable(), v);
     env->currentLine++;
-    if (getMode() == Run)
-      emit nextStep();
+    if (getMode() == Run) try {
+        emit nextStep();
+      } catch (QStringException &e) {
+        setMode(Normal);
+        emit needPopUp(e.what());
+      }
     else {
       QList<QPair<int, QColor>> lines;
       int offset = getLineOffset(env->currentLine.key());
@@ -234,7 +269,6 @@ void BasicInterpreter::setInput(int v) {
       emit needHighlight(lines);
     }
   }
-  emit needPrintEnv(env->toString());
 }
 
 void BasicInterpreter::debug() {
@@ -253,7 +287,7 @@ void BasicInterpreter::debug() {
     } else
       emit nextStep();
   } catch (const QStringException &err) {
-    emit needErrorOutput(err.what());
+    emit needPopUp(err.what());
     setMode(Normal);
     QList<QPair<int, QColor>> lines;
     lines.append(errLines);

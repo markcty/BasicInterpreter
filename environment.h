@@ -5,9 +5,9 @@
 #include <QString>
 
 #include "basicinterpreter.h"
+#include "declarations.h"
 #include "expression.h"
 #include "statement.h"
-#include "declarations.h"
 
 /*
  * Class: Environment

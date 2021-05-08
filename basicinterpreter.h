@@ -65,8 +65,8 @@ class BasicInterpreter : public QObject {
   // require printing environment
   void needPrintEnv(QString output);
 
-  // require output error
-  void needErrorOutput(QString err);
+  // require pop up window
+  void needPopUp(QString err);
 
   // require highlight lines
   void needHighlight(QList<QPair<int, QColor>> lines);
@@ -74,12 +74,15 @@ class BasicInterpreter : public QObject {
   // mode changed
   void modeChanged(Mode mode);
 
+  // source changed
+  void sourceChanged();
+
  public slots:
   // excute a statement
   void step();
 
   // set the variable(can only be used in INPUT statement)
-  void setInput(int v);
+  void setInput(QString input);
 
   // start debug or step
   void debug();

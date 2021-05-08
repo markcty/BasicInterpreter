@@ -27,8 +27,8 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
       if (key->key() == Qt::Key_Return || key->key() == Qt::Key_Enter) {
         ui->output->setReadOnly(true);
         QString input = ui->output->toPlainText();
-        input = input.mid(input.lastIndexOf('?') + 1);
-        interpreter->setInput(input.toInt());
+        input = input.mid(input.lastIndexOf('?') + 1).simplified();
+        interpreter->setInput(input);
         ui->cmd->setFocus();
         return true;  // do not process this event further
       }
@@ -52,7 +52,7 @@ void MainWindow::newInterpreter() {
           &MainWindow::printExpTree);
   connect(interpreter, &BasicInterpreter::needClearScreen, this,
           &MainWindow::clearScreen);
-  connect(interpreter, &BasicInterpreter::needErrorOutput, this,
+  connect(interpreter, &BasicInterpreter::needPopUp, this,
           &MainWindow::notifyError);
   connect(interpreter, &BasicInterpreter::needHighlight, this,
           &MainWindow::HightLines);
@@ -62,6 +62,8 @@ void MainWindow::newInterpreter() {
           &MainWindow::printEnv);
   connect(interpreter, &BasicInterpreter::modeChanged, this,
           &MainWindow::detectMode);
+  connect(interpreter, &BasicInterpreter::sourceChanged, this,
+          &MainWindow::updateSource);
 }
 
 void MainWindow::HightLines(QList<QPair<int, QColor>> lines) {
@@ -108,7 +110,6 @@ void MainWindow::load() {
   while (!in.atEnd()) interpreter->parseCmd(in.readLine());
 
   file.close();
-  ui->source->setText(interpreter->getSource());
 }
 
 void MainWindow::clear() { interpreter->parseCmd("CLEAR"); }
@@ -159,12 +160,15 @@ void MainWindow::detectMode(BasicInterpreter::Mode mode) {
   }
 }
 
+void MainWindow::updateSource() {
+  ui->source->setText(interpreter->getSource());
+}
+
 void MainWindow::execute() { interpreter->parseCmd("RUN"); }
 
 void MainWindow::getCMD() {
   interpreter->parseCmd(ui->cmd->text().simplified());
   ui->cmd->clear();
-  ui->source->setText(interpreter->getSource());
 }
 
 void MainWindow::getInput() {

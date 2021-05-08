@@ -74,20 +74,39 @@ EndStatement::EndStatement(const QString &l) {
 
 QString Statement::toString() const { return line; }
 
-QString Statement::getVariable() { return ""; }
+QString Statement::getVariable() {
+  throw QStringException("unimplemented function");
+}
 
-int Statement::getConstant() { return 0; }
+int Statement::getConstant() {
+  throw QStringException("unimplemented function");
+}
 
-int Statement::getLineNumber() { return 0; }
+int Statement::getLineNumber() {
+  throw QStringException("unimplemented function");
+}
 
-QString Statement::getOperator() { return " "; }
+QString Statement::getOperator() {
+  throw QStringException("unimplemented function");
+}
 
-Expression *Statement::getFirstExp() { return nullptr; }
+Expression *Statement::getFirstExp() {
+  throw QStringException("unimplemented function");
+}
 
-Expression *Statement::getSecondExp() { return nullptr; }
+Expression *Statement::getSecondExp() {
+  throw QStringException("unimplemented function");
+}
+
+bool Statement::validifyVar(QString var) {
+  if (!var[0].isLetter()) return false;
+  for (auto c : var)
+    if (!c.isLetterOrNumber()) return false;
+  return true;
+}
 
 QString RemStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   QString tree("REM\n");
   tree.append("    " + line.mid(line.indexOf(" ") + 1) + "\n");
   return tree;
@@ -96,7 +115,7 @@ QString RemStatement::toTree() {
 void RemStatement::parse() {}
 
 QString LetStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   if (variableType == STR) return "LET = \"" + val + "\"\n";
   QString tree("LET =\n");
   tree.append("    " + variable + '\n');
@@ -109,6 +128,16 @@ VariableType LetStatement::getType() const { return variableType; }
 QString LetStatement::getVal() const { return val; }
 
 void LetStatement::parse() {
+  auto extractStr = [](QString s) {
+    if (!((s.front() == '"' && s.back() == '"') ||
+          (s.front() == '\'' && s.back() == '\'')))
+      throw QStringException("Invalid Statement");
+    s = s.mid(1, s.length() - 2);
+    if (s.indexOf('"') != -1 || s.indexOf('\'') != -1)
+      throw QStringException("Invalid Statement");
+    return s;
+  };
+
   QString l = line;
   l = l.remove("LET").simplified();
 
@@ -117,15 +146,12 @@ void LetStatement::parse() {
   if (part.size() != 2) throw QStringException("Invalid Statement");
   variable = part[0].simplified();
 
-  // string
+  if (!validifyVar(variable)) throw QStringException("Invalid Variable name");
 
-  if (l.indexOf("\"") != -1) {
-    int i = l.indexOf("\"");
-    if (l.back() != '\"') throw QStringException("Invalid Statement");
+  // string
+  if (l.indexOf("\"") != -1 || l.indexOf("'") != -1) {
     variableType = STR;
-    val = l.mid(i + 1, l.length() - i - 2);
-    if (val.indexOf("\"") != -1 || val.indexOf("'") != -1)
-      throw QStringException("Invalid Statement");
+    val = extractStr(part[1].simplified());
   } else if (l.indexOf("'") != -1) {
     int i = l.indexOf("'");
     if (l.back() != '\'') throw QStringException("Invalid Statement");
@@ -146,7 +172,7 @@ LetStatement::~LetStatement() {
 }
 
 QString InputStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   QString tree("INPUT =\n");
   tree.append("    " + variable + '\n');
   return tree;
@@ -156,10 +182,12 @@ void InputStatement::parse() {
   QString l = line;
   l = l.remove("INPUT").simplified();
   variable = l;
+
+  if (!validifyVar(variable)) throw QStringException("Invalid Variable name");
 }
 
 QString GotoStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   QString tree("GOTO\n");
   tree.append("    " + QString::number(lineNumber) + '\n');
   return tree;
@@ -174,7 +202,7 @@ void GotoStatement::parse() {
 }
 
 QString IfStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   QString tree("IF THEN\n");
   tree.append(exp1->toTree() + '\n');
   tree.append("    " + op + '\n');
@@ -189,14 +217,14 @@ IfStatement::~IfStatement() {
 }
 
 QString EndStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   return "END";
 }
 
 void EndStatement::parse() {}
 
 QString PrintStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   QString tree("PRINT\n");
   tree.append(exp->toTree() + '\n');
   return tree;
@@ -216,7 +244,7 @@ InvalidStatement::InvalidStatement(const QString &l) {
 }
 
 QString InvalidStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   throw QStringException("Can't call toTree of an invalid statement");
 }
 
@@ -228,7 +256,7 @@ PrintfStatement::PrintfStatement(const QString &l) {
 }
 
 QString PrintfStatement::toTree() {
-  if (statementType == ERR) return "ERR";
+  if (statementType == ERR) return "ERR\n";
   QString tree("PRINTF\n");
   tree.append("    " + line.mid(line.indexOf(" ") + 1) + "\n");
   return tree;
@@ -238,7 +266,7 @@ void PrintfStatement::parse() {
   auto l = line;
   l.remove("PRINTF ");
   auto part = l.split(",");
-  format = part[0];
+  format = part[0].simplified();
   if (!((format.front() == '"' && format.back() == '"') ||
         (format.front() == '\'' && format.back() == '\'')))
     throw QStringException("Invalid Statement");
@@ -252,7 +280,7 @@ void PrintfStatement::parse() {
     j++;
   }
   if (part.size() - 1 != count) throw QStringException("Invalid Statement");
-  for (int i = 1; i < part.size(); i++) args.push_back(part[i]);
+  for (int i = 1; i < part.size(); i++) args.push_back(part[i].simplified());
 }
 
 QString PrintfStatement::compose(const Environment &env) {
@@ -292,4 +320,26 @@ QString PrintfStatement::compose(const Environment &env) {
   }
 
   return s;
+}
+
+InputsStatement::InputsStatement(QString l) {
+  line = l;
+  statementType = INPUTS;
+}
+
+QString InputsStatement::getVariable() { return variable; }
+
+QString InputsStatement::toTree() {
+  if (statementType == ERR) return "ERR\n";
+  QString tree("INPUTS =\n");
+  tree.append("    " + variable + '\n');
+  return tree;
+}
+
+void InputsStatement::parse() {
+  QString l = line;
+  l = l.remove("INPUTS").simplified();
+  variable = l;
+
+  if (!validifyVar(variable)) throw QStringException("Invalid Variable name");
 }
