@@ -264,8 +264,21 @@ QString PrintfStatement::toTree() {
 
 void PrintfStatement::parse() {
   auto l = line;
+  args.clear();
   l.remove("PRINTF ");
-  auto part = l.split(",");
+  QList<QString> part;
+  // split
+  int i = 0, j = 0;
+  bool inQuote = false;
+  l.append(',');
+  for (int j = 0; j < l.length(); j++) {
+    if (l[j] == '"' || l[j] == '\'') inQuote = !inQuote;
+    if (l[j] == ',' && !inQuote) {
+      part.append(l.mid(i, j - i));
+      i = j + 1;
+    }
+  }
+
   format = part[0].simplified();
   if (!((format.front() == '"' && format.back() == '"') ||
         (format.front() == '\'' && format.back() == '\'')))
@@ -274,7 +287,8 @@ void PrintfStatement::parse() {
   if (format.indexOf('"') != -1 || format.indexOf('\'') != -1)
     throw QStringException("Invalid Statement");
 
-  int count = 0, j = 0;
+  int count = 0;
+  j = 0;
   while ((j = format.indexOf("{}", j)) != -1) {
     count++;
     j++;
@@ -295,28 +309,29 @@ QString PrintfStatement::compose(const Environment &env) {
   };
 
   QString s = format;
+
   for (auto &arg : args) {
-    QString args;
+    QString argString;
     if (arg.front() == '\'' || arg.front() == '"') {
-      args = extractStr(arg);
+      argString = extractStr(arg);
     } else if (arg.front().isDigit()) {
       bool ok = true;
       arg.toInt(&ok);
       if (!ok) throw QStringException("compose error");
-      args = arg;
+      argString = arg;
     } else {
       switch (env.getType(arg)) {
         case STR:
-          args = env.getStrValue(arg);
+          argString = env.getStrValue(arg);
           break;
         case INT:
-          args = QString::number(env.getIntValue(arg));
+          argString = QString::number(env.getIntValue(arg));
           break;
       }
     }
     int i = s.indexOf("{}");
     s.remove(i, 2);
-    s.insert(i, args);
+    s.insert(i, argString);
   }
 
   return s;

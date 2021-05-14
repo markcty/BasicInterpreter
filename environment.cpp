@@ -7,6 +7,8 @@ int Environment::getIntValue(const QString &variable) const {
 }
 
 QString Environment::getStrValue(const QString &variable) const {
+  if (!env.contains(variable))
+    throw QStringException(variable + " does not exist in runtime environment");
   return env[variable].strVal;
 }
 
