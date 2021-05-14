@@ -146,7 +146,7 @@ void BasicInterpreter::step() {
       if (env->currentLine != src.constEnd()) {
         int offset = getLineOffset(env->currentLine.key());
         lines.append(QPair<int, QColor>{offset, QColor(124, 252, 0)});
-        emit needPrintExpTree(env->currentLine.value()->toString());
+        emit needPrintExpTree(env->currentLine.value()->toTree());
       }
       lines.append(errLines);
       emit needHighlight(lines);
