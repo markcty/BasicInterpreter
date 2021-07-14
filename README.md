@@ -1,4 +1,4 @@
-# Basic Interpreter
+# Data Struture Project 1: Basic Interpreter
 
 A simple IDE to parse and debug BASIC language. Built with QT.
 
